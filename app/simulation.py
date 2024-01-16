@@ -285,7 +285,7 @@ class Simulation():
                 # calcular x, y teniendo en cuenta el zoom y la escala relativa debido a la cámara
                 relative_scale = self.scale / self.default_scale
                 x = relative_scale * ((self.scale * entity.x) + self.dx) + self.offsetx
-                y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflected across y-axis to compensate for pygame's reversed axes
+                y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflejado a lo largo del eje y para compensar que el eje y esta invertido en pygame
                 r = abs(int(entity.diameter * self.scale * self.entity_scale / 2 ))
                 # solo dibujar lo que se va a ver en pantalla
                 if x < self.width and y < self.height:
