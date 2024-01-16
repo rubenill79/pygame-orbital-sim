@@ -1,0 +1,6 @@
+python 3 
+tkinter
+customtkinter
+pygame 2.5
+astropy
+astroquery
