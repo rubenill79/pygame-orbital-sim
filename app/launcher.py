@@ -114,8 +114,8 @@ switch_1 = customtkinter.CTkSwitch(master=frame_1, text="Pantalla completa")
 switch_1.toggle()
 switch_1.pack(pady=10, padx=10)
 
-#label_4 = customtkinter.CTkLabel(master=frame_1, justify=customtkinter.LEFT, text="Idioma / Language")
-#label_4.pack(pady=10, padx=10)
+label_4 = customtkinter.CTkLabel(master=frame_1, justify=customtkinter.LEFT, text="Idioma / Language")
+label_4.pack(pady=10, padx=10)
 
 radiobutton_var = customtkinter.IntVar(value=1)
 
