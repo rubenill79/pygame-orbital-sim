@@ -237,7 +237,7 @@ class Simulation():
         else: flag = 0 #pygame.DOUBLEBUF
         self.window = pygame.display.set_mode((self.width, self.height), flag)
         pygame.display.set_caption('Simulación orbital')
-        pygame.display.set_icon(pygame.image.load('resources/icon.png'))
+        pygame.display.set_icon(pygame.image.load('resources/icon.ico'))
 
         # modificar sim_rate a un numero menor para el escenario tierra - luna para que las estaciones espaciales no
         # sufran fallos de cálculo de la simulación
