@@ -7,4 +7,4 @@ astropy
 astroquery
 
 WHAT TO EXECUTE ?
-Compile and execute launcher.py :)
+Compile and execute launcher.py
