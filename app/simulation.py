@@ -138,7 +138,7 @@ class Simulation():
                 epochs = Time(self.date).jd,
                 id_type='id'
             )
-
+        
         if not entity_id == observer_id:
             vectors = obj.vectors()
             elements = obj.elements()
@@ -146,7 +146,7 @@ class Simulation():
             # obtener el eje excéntrico (e) y semieje mayor (a) 
             e = elements['e'].data[0]
             a = elements['a'].data[0]
-            name = elements['targetname'].data[0].replace('Barycenter ', '')
+            name = elements['targetname'].data[0]
 
             # obtener la posicion y velocidad de los componentes del JPL SSD 
             x, y = vectors['x'], vectors['y']

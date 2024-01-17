@@ -18,7 +18,13 @@ class Preset(Simulation):
 
         for i, id_ in enumerate(self.entity_data.keys()):
             mass = self.entity_data[id_]['m']
-            colour = self.entity_data[id_]['c']
+            try:
+                colour = self.entity_data[id_]['c']
+
+            except KeyError:
+                 # No hace falta que todas tengan color ya que hay uno prediseñado para satélites y objetos diminutos
+                colour = (142, 109, 97)
+            
             try:
                 diameter = self.entity_data[id_]['d']
                 # Metodo que accede a la api Horizons y descarga los datos
@@ -65,8 +71,7 @@ class EarthMoon(Preset):
                 'c': (192, 192, 192)
             },
             '-125544': {
-                'm': 4.15e2,
-                'c': (192, 192, 192)
+                'm': 4.15e2,   
             }
         }
         self.add_entities('3')
@@ -171,8 +176,7 @@ class SolarSystem(Preset):
             }, 
             '9': {
                 'm': 1.46e22,
-                'd': 1.58e-5,
-                'c': (142, 109, 97)
+                'd': 1.58e-5,    
             }
         }
         self.add_entities('sun')
@@ -237,44 +241,38 @@ class EnhancedSolarSystem(Preset):
             '9': {
                 'm': 1.46e22,
                 'd': 1.58e-5,
-                'c': (142, 109, 97)
             },
             '-31': {
                 'm': 7.22e2,
-                'c': (142, 109, 97)
             },
             '-32': {
                 'm': 8.15e2,
-                'c': (142, 109, 97)
             },
             '-96': {
-                'm': 6.85e2,
-                'c': (142, 109, 97)
+                'm': 6.85e2,   
             },
             '-227': {
-                'm': 1.039e3,
-                'c': (142, 109, 97)
+                'm': 1.039e3, 
             },
             '-143205': {
                 'm': 1.3e3,
-                'c': (142, 109, 97)
             },
             '-23': {
-                'm': 2.58e2,
-                'c': (142, 109, 97)
+                'm': 2.58e2,  
             },
             '-24': {
                 'm': 2.58e2,
-                'c': (142, 109, 97)
             },
             '20065803': {
-                'm': 5.4e11,
-                'c': (142, 109, 97)
+                'm': 5.4e11,   
             },
-            '2000001': {
+            'Ceres': {
                 'm': 9.43e20,
-                'd': 9.46e-3,
-                'c': (142, 109, 97)
+                'd': 9.46e-3,       
+            },
+            'Pallas': {
+                'm': 2.2e20,
+                'd': 4.45e-3,
             }
         }
         self.add_entities('sun')
