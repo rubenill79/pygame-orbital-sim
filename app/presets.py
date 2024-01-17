@@ -18,16 +18,26 @@ class Preset(Simulation):
 
         for i, id_ in enumerate(self.entity_data.keys()):
             mass = self.entity_data[id_]['m']
-            diameter = self.entity_data[id_]['d']
             colour = self.entity_data[id_]['c']
-            # Metodo que accede a la api Horizons y descarga los datos
-            self.add_horizons_entity(
-                colour = colour,
-                entity_id = id_,
-                observer_id = observer_id,
-                mass = mass,
-                diameter = diameter         
-            )
+            try:
+                diameter = self.entity_data[id_]['d']
+                # Metodo que accede a la api Horizons y descarga los datos
+                self.add_horizons_entity(
+                    colour = colour,
+                    entity_id = id_,
+                    observer_id = observer_id,
+                    mass = mass,
+                    diameter = diameter         
+                )
+            except KeyError:
+                # No hace falta que todas tengan diametro ya que hay uno prediseñado para satélites
+                self.add_horizons_entity(
+                    colour = colour,
+                    entity_id = id_,
+                    observer_id = observer_id,
+                    mass = mass,
+                )
+
             print('Entidad {} de {} añadida con éxito'.format(i + 1, len(self.entity_data)))
 """
 Clases hijas para cada sistema prediseñado
@@ -56,7 +66,6 @@ class EarthMoon(Preset):
             },
             '-125544': {
                 'm': 4.15e2,
-                'd': 0.5e-5,
                 'c': (192, 192, 192)
             }
         }
@@ -232,42 +241,34 @@ class EnhancedSolarSystem(Preset):
             },
             '-31': {
                 'm': 7.22e2,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-32': {
                 'm': 8.15e2,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-96': {
                 'm': 6.85e2,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-227': {
                 'm': 1.039e3,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-143205': {
                 'm': 1.3e3,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-23': {
                 'm': 2.58e2,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '-24': {
                 'm': 2.58e2,
-                'd': 0.5e-5,
                 'c': (142, 109, 97)
             },
             '20065803': {
                 'm': 5.4e11,
-                'd': 0.390e-5,
                 'c': (142, 109, 97)
             }
         }

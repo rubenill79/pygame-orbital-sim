@@ -116,7 +116,7 @@ class Simulation():
             e = e,
             a = a
         )
-    def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 1e-5):
+    def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 0.5e-5):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
         x, y, speed, angle, e, a, name = self.get_horizons_positioning(entity_id, observer_id)
 
@@ -285,7 +285,7 @@ class Simulation():
                 # calcular x, y teniendo en cuenta el zoom y la escala relativa debido a la cámara
                 relative_scale = self.scale / self.default_scale
                 x = relative_scale * ((self.scale * entity.x) + self.dx) + self.offsetx
-                y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflejado a lo largo del eje y para compensar que el eje y esta invertido en pygame
+                y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflected across y-axis to compensate for pygame's reversed axes
                 r = abs(int(entity.diameter * self.scale * self.entity_scale / 2 ))
                 # solo dibujar lo que se va a ver en pantalla
                 if x < self.width and y < self.height:
