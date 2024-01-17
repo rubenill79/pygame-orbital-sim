@@ -270,6 +270,11 @@ class EnhancedSolarSystem(Preset):
             '20065803': {
                 'm': 5.4e11,
                 'c': (142, 109, 97)
+            },
+            '2000001': {
+                'm': 9.43e20,
+                'd': 9.46e-3,
+                'c': (142, 109, 97)
             }
         }
         self.add_entities('sun')
