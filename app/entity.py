@@ -1,8 +1,12 @@
 import math
 from astropy.constants import G
 
+"""
+Los vectores polares son cantidades con magnitud y dirección
+Cálculos para sumar dos vectores en coordenadas polares y obtener el vector resultante.
+Devuelve un nuevo vector en coordenadas polares (magnitud, ángulo).
+"""
 def add_vectors(vector1, vector2):
-    # vectores son cantidades con magnitud y dirección
     # agregarlos conectándolos de un extremo a otro para formar un vector resultante
     # sumamos los componentes x e y para obtener un triángulo rectángulo con hipotenusa de la magnitud del vector resultante
     mag1, angle1 = vector1
@@ -56,20 +60,25 @@ class Entity():
     Cálculos físicos para el movimiento
     """
     def days_per_update(self):
-    # devuelve el número de días que pasan en un intervalo dado delta_t
+        # Devuelve el número de días que pasan en un intervalo dado delta_t
+        # Utilizado para simular el movimiento en función de la tasa de simulación y el tiempo entre fotogramas.
         return 1 / ( (1000 / self.sim_rate) / self.delta_t )
     def move(self):
+        # Simula el movimiento de la entidad en función de su velocidad y ángulo.
+        # Actualiza las coordenadas de la entidad en el plano.
         dpu = self.days_per_update()
         x, y = math.sin(self.angle) * self.speed * dpu, math.cos(self.angle) * self.speed * dpu
         self.x += x
         self.y -= y # resta debido al sistema de coordenadas de pygame porque 0,0 corresponde a la esquina superior en vez de la inferior
     def accelerate(self, acceleration):
-        # ajusta la magnitud de la aceleración para los días pasados por fotograma
-        # combina aplica la aceleración al vector velocidad
+        # Ajusta la magnitud de la aceleración para los días pasados por fotograma
+        # Aplica una aceleración a la entidad en función de su velocidad actual y la nueva aceleración.
+        # Utiliza funciones trigonométricas para combinar las aceleraciones en coordenadas polares.
         acc_mag, acc_angle = acceleration
         acc_mag *= self.days_per_update()
         self.speed, self.angle = add_vectors((self.speed, self.angle), (acc_mag, acc_angle))
     def attract(self, other):
+        # Calcula la atracción gravitatoria entre dos entidades y ajusta sus velocidades en consecuencia.
         dx = self.x - other.x
         dy = self.y - other.y
         theta = math.atan2(dy, dx)
@@ -79,6 +88,6 @@ class Entity():
         # F = G * m1 * m2 / r^2
         force = self.GForce * self.mass * other.mass / (distance ** 2)
      
-        # acelerar ambos cuerpos uno hacia el otro mediante el vector de aceleración a = F/m, reordenado a partir de la segunda ley de Newton
+        # Acelerar ambos cuerpos uno hacia el otro mediante el vector de aceleración a = F/m, reordenado a partir de la segunda ley de Newton
         self.accelerate((force / self.mass, theta - (math.pi / 2)))
         other.accelerate((force / other.mass, theta + (math.pi / 2)))
