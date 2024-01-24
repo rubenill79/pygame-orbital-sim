@@ -295,15 +295,9 @@ class Simulation():
                     # hacer que los planetas se vean mejor desde largas distancias
                     if r == 0: r = 1
                     elif r <= 1 and self.scale > 300: r = 2
-                    if i == 0:
-                        if r < 2: r = 2
-                        label = font.render(F"{entity.name}", True, (180, 180, 180))
-                    else:
-                        # Distancia de sol a entidad con el teorema de pitágoras
-                        label = font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f}UA", True, (180, 180, 180))
+                    
                     pygame.draw.circle(self.window, entity.colour, (x, y), r)
        
-                    # self.window.blit(label, (x + 3 + r, y + 3 + r))
                     # solo dibujar las etiquetas si hay hover del raton
                     mouse_current_pos = pygame.mouse.get_pos()
                     if not self.hovered and (mouse_current_pos[0] - 40 < x and x < mouse_current_pos[0] + 40) and (mouse_current_pos[1] - 40 < y and y < mouse_current_pos[1] + 40):
