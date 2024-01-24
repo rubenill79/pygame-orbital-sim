@@ -54,6 +54,7 @@ class Simulation():
         self.language = language
         self.fullscreen = fullscreen
         self.show_labels = True
+        self.hovered = False
         self.paused = True
         self.ended = False
     """ 
@@ -227,14 +228,14 @@ class Simulation():
         pygame.init()
         
         if self.fullscreen:
-            flag = pygame.FULLSCREEN #| pygame.HWSURFACE #| pygame.DOUBLEBUF 
+            flag = pygame.FULLSCREEN
 
             display_info = pygame.display.Info()
             self.width = display_info.current_w
             self.height = display_info.current_h
             self.offsetx = self.width / 2
             self.offsety = self.height / 2
-        else: flag = 0 #pygame.DOUBLEBUF
+        else: flag = 0
         self.window = pygame.display.set_mode((self.width, self.height), flag)
         pygame.display.set_caption('Simulación orbital')
         pygame.display.set_icon(pygame.image.load('resources/icon.ico'))
@@ -280,6 +281,8 @@ class Simulation():
             self.window.fill(self.orbital_system.bg)
             # dibujar planetas
             entity_labels = []
+            # reset del hover
+            self.hovered = False
             for i, entity in enumerate(self.orbital_system.entities):
                 entity.sim_rate = self.sim_rate
                 # calcular x, y teniendo en cuenta el zoom y la escala relativa debido a la cámara
@@ -300,8 +303,14 @@ class Simulation():
                         label = font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f}UA", True, (180, 180, 180))
                     pygame.draw.circle(self.window, entity.colour, (x, y), r)
        
-                    #self.window.blit(label, (x + 3 + r, y + 3 + r))
-                    entity_labels.append((label, (x + 3 + r, y + 3 + r)))
+                    # self.window.blit(label, (x + 3 + r, y + 3 + r))
+                    # solo dibujar las etiquetas si hay hover del raton
+                    mouse_current_pos = pygame.mouse.get_pos()
+                    if not self.hovered and (mouse_current_pos[0] - 40 < x and x < mouse_current_pos[0] + 40) and (mouse_current_pos[1] - 40 < y and y < mouse_current_pos[1] + 40):
+                        self.hovered = True
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                        pygame.draw.circle(self.window, (180, 180, 180), (x, y), r*1.2,1)
+                        entity_labels.append((label, (x + 3 + r, y + 3 + r)))   
             
             if self.show_labels:
                 for label in entity_labels:
