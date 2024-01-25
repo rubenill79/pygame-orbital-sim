@@ -272,7 +272,23 @@ class EnhancedSolarSystem(Preset):
             },
             'Pallas': {
                 'm': 2.2e20,
-                'd': 4.45e-3,
+                'd': 5.45e-3,
+            },
+            'Vesta': {
+                'm': 2.71e20,
+                'd': 5.30e-3,
+            },
+            '2000016' : {
+                'm': 2.29e19,
+                'd': 2.532e-3,
+            },
+            'Lutetia': {
+                'm': 1.700e18,
+                'd': 9.576e-4,
+            },
+            'Kleopatra': {
+                'm': 2.97e18,
+                'd': 1.24e-3,
             }
         }
         self.add_entities('sun')

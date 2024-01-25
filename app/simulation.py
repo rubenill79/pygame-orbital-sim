@@ -295,12 +295,13 @@ class Simulation():
                     # hacer que los planetas se vean mejor desde largas distancias
                     if r == 0: r = 1
                     elif r <= 1 and self.scale > 300: r = 2
-                    
+                    hitbox = 40
+                    if r > 50: hitbox = r * 1.2
                     pygame.draw.circle(self.window, entity.colour, (x, y), r)
        
                     # solo dibujar las etiquetas si hay hover del raton
                     mouse_current_pos = pygame.mouse.get_pos()
-                    if not self.hovered and (mouse_current_pos[0] - 40 < x and x < mouse_current_pos[0] + 40) and (mouse_current_pos[1] - 40 < y and y < mouse_current_pos[1] + 40):
+                    if not self.hovered and (mouse_current_pos[0] - hitbox < x and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y and y < mouse_current_pos[1] + hitbox):
                         self.hovered = True
                         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                         if i == 0:
