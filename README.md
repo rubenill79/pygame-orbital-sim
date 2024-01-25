@@ -1,31 +1,55 @@
-pygame-orbital-sim
-PyPI PyPI - License PyPI - Python Version
+# Pygame Orbital Simulation
 
-A customisable and interactive Python simulation build over PyGame that models the orbits of celestial bodies in 2D space using Newton’s law of universal gravitation!
+Pygame Orbital Simulation is a customizable and interactive Python simulation built over Pygame that models the orbits of celestial bodies in 2D space using Newton’s law of universal gravitation.
 
-You can choose from several included preset arrangements.
+![Orbital Simulation](link_to_image)
 
-Precise positioning and movement vectors are obtained through built-in access to JPL’s HORIZONS system, a resource that provides precise data for objects in our solar system.
+## Features
 
-Installing
-Dependencies
-orbital-sim requires the following:
+- Customizable simulation of celestial bodies' orbits.
+- Several included preset arrangements for quick setup.
+- Precise positioning and movement vectors obtained through built-in access to JPL’s HORIZONS system.
 
-Python 3
-Pygame
-Astropy
-Astroquery
-User installation
+## Installation
 
-Launch launcher.py and select the preset you like.
-Once the simulation starts, there are a number of ways to control and interact with it:
+### Dependencies
 
-Key(s)	Action(s)
-SPACE	Pause/play simulation
-W S A D	Move window view; pan about
-+/-	Zoom in and out respectively
-Also mouse wheel and mouse draging works
-r	Reset zoom and position
-./,	Speed up and slow down the simulation respectively
-l	Toggle labels on the entity selected
-ESC	Quit the simulation
+Pygame Orbital Simulation requires the following dependencies:
+
+- Python 3
+- Pygame
+- Astropy
+- Astroquery
+
+### User Installation
+
+1. Clone the repository:
+git clone https://https://github.com/rubenill79/pygame-orbital-sim
+
+2. Install dependencies:
+pip install -r requirements.txt (doesnt work yet install manually)
+
+3. Launch `launcher.py` and select the preset you like.
+
+## Usage
+
+Once the simulation starts, you can control and interact with it using the following keys:
+
+| Key(s) | Action(s)                            |
+|--------|--------------------------------------|
+| SPACE  | Pause/play simulation                |
+| W S A D| Move window view; pan about          |
+| +/-    | Zoom in and out respectively         |
+| Mouse  | Mouse wheel and dragging for zooming |
+| r      | Reset zoom and position              |
+| ./,    | Speed up and slow down simulation   |
+| l      | Toggle labels on the selected entity|
+| ESC    | Quit the simulation                  |
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request.
+
+## License
+
+This project is licensed under the [MIT License](link_to_license).
