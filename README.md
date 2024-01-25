@@ -6,9 +6,13 @@ Pygame Orbital Simulation is a customizable and interactive Python simulation bu
 
 ## Features
 
-- Customizable simulation of celestial bodies' orbits.
-- Several included preset arrangements for quick setup.
+- Several included preset arrangements.
 - Precise positioning and movement vectors obtained through built-in access to JPL’s HORIZONS system.
+
+## Future features
+
+- Customizable simulation of celestial bodies' orbits.
+- Real time zooming system to bodies to see moons, satelites, ect...
 
 ## Installation
 
