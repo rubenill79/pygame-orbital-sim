@@ -52,4 +52,4 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
 
-This project is licensed under the [MIT License](link_to_license).
+This project is licensed under the [MIT License](https://github.com/rubenill79/pygame-orbital-sim/blob/main/LICENSE).
