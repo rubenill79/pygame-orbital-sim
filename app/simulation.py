@@ -147,7 +147,7 @@ class Simulation():
             # obtener el eje excéntrico (e) y semieje mayor (a) 
             e = elements['e'].data[0]
             a = elements['a'].data[0]
-            name = elements['targetname'].data[0]
+            name = elements['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
 
             # obtener la posicion y velocidad de los componentes del JPL SSD 
             x, y = vectors['x'], vectors['y']
@@ -160,9 +160,9 @@ class Simulation():
 
             return x, y, speed, angle, e, a, name
         else:
-            # caso especial para el cuerpo central del sistema (e.g. the sun)
+            # caso especial para el cuerpo central del sistema (e.g. sun)
             # obj.elements() no funciona cuando entity_id y observer_id son iguales
-            name = obj.vectors()['targetname'].data[0].replace('Barycenter ', '')
+            name = obj.vectors()['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
             return 0, 0, 0, 0, 0, 0, name
     """
     Funciones de la simulación
@@ -306,30 +306,38 @@ class Simulation():
                         if i == 0:
                             if r < 2: r = 2
                             name_label = font.render(F"{entity.name}", True, (180, 180, 180))
+                            diameter_label = font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
+                            # append data to array
+                            entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
+                            entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 30)))
+                            entity_labels.append((mass_label, (x + 3 + r, y + 3 + r + 50)))
+                            entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 70)))
                         else:
                             # Distancia de sol a entidad con el teorema de pitágoras
-                            name_label = font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f}UA", True, (180, 180, 180))
-                        # Otros parámetros
-                        position_label = font.render(F"Posición: ({entity.x},{entity.y})UA", True, (180, 180, 180))
-                        diameter_label = font.render(F"Diámetro: {entity.diameter}UA", True, (180, 180, 180))
-                        mass_label = font.render(F"Masa: {entity.mass}kg", True, (180, 180, 180))
-                        density_label = font.render(F"Densidad: {entity.density}kg/UA", True, (180, 180, 180))
-                        e_label = font.render(F"Excentricidad de la órbita: {entity.e}", True, (180, 180, 180))
-                        a_label = font.render(F"Semieje mayor: {entity.a}UA", True, (180, 180, 180))
-                        speed_label = font.render(F"Velocidad: {entity.speed}UA/día", True, (180, 180, 180))
-                        angle_label = font.render(F"Ángulo de rotación en rad: {entity.angle}", True, (180, 180, 180))
+                            name_label = font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
+                            position_label = font.render(F"Posición: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
+                            diameter_label = font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
+                            e_label = font.render(F"Excentricidad de la órbita: {entity.e}", True, (180, 180, 180))
+                            a_label = font.render(F"Semieje mayor: {entity.a} UA", True, (180, 180, 180))
+                            speed_label = font.render(F"Velocidad: {entity.speed} UA/día", True, (180, 180, 180))
+                            angle_label = font.render(F"Ángulo de rotación: {entity.angle} rad", True, (180, 180, 180))
+                            # append data to array
+                            entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
+                            entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
+                            entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 50)))
+                            entity_labels.append((mass_label, (x + 3 + r, y + 3 + r + 70)))
+                            entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 90)))
+                            entity_labels.append((e_label, (x + 3 + r, y + 3 + r + 110)))
+                            entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
+                            entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
+                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
+                        
                         # circle underline
-                        pygame.draw.circle(self.window, (180, 180, 180), (x, y), r*1.2,1)
-                        # append data to array
-                        entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
-                        entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
-                        entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 50)))
-                        entity_labels.append((mass_label, (x + 3 + r, y + 3 + r + 70)))
-                        entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 90)))
-                        entity_labels.append((e_label, (x + 3 + r, y + 3 + r + 110)))
-                        entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
-                        entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
-                        entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
+                        pygame.draw.circle(self.window, (180, 180, 180), (x, y), r*1.2,1)    
             
             if self.show_labels:
                 for label in entity_labels:
