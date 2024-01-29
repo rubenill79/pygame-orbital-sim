@@ -32,7 +32,7 @@ Pygame Orbital Simulation requires the following dependencies:
 ### User Installation
 
 1. Clone the repository:
-git clone https://https://github.com/rubenill79/pygame-orbital-sim
+git clone https://github.com/rubenill79/pygame-orbital-sim
 
 2. Install dependencies:
 pip install -r requirements.txt (doesnt work yet install manually)
