@@ -18,7 +18,8 @@ class Simulation():
         start_date = None,
         fullscreen = False,
         language = 2,
-        scenario = 0
+        scenario = 0,
+        view_mode = False
     ):    
         # dimensions: (ancho, alto) de la ventana en píxeles
         # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado -1: calculado automáticamente por self.set_scale())
@@ -238,7 +239,7 @@ class Simulation():
         else: flag = 0
         self.window = pygame.display.set_mode((self.width, self.height), flag)
         pygame.display.set_caption('Simulación orbital')
-        pygame.display.set_icon(pygame.image.load('resources/icon.ico'))
+        pygame.display.set_icon(pygame.image.load('resources/icon/icon.ico'))
 
         # modificar sim_rate a un numero menor para el escenario tierra - luna para que las estaciones espaciales no
         # sufran fallos de cálculo de la simulación
@@ -251,7 +252,9 @@ class Simulation():
             semimajor_axes.append(entity.a)
         self.set_scale(max(semimajor_axes))
 
-        font = pygame.font.Font('resources/Inconsolata.ttf', 20)
+        font = pygame.font.Font('resources/font/Inconsolata.ttf', 20)
+        help_button_image = pygame.image.load('resources/ui/Help.png')
+        gear_button_image = pygame.image.load('resources/ui/Gear.png')
         clock = pygame.time.Clock()
         self.mouse_start_pos = (self.width/2,self.height/2)
         
@@ -292,9 +295,14 @@ class Simulation():
                 r = abs(int(entity.diameter * self.scale * self.entity_scale / 2 ))
                 # solo dibujar lo que se va a ver en pantalla
                 if x < self.width and y < self.height:
-                    # hacer que los planetas se vean mejor desde largas distancias
-                    if r == 0: r = 1
-                    elif r <= 1 and self.scale > 300: r = 2
+                    # Modo lupa
+                    if self.view_mode and self.scenario != 1:
+                        if i == 0 and r < 20: r = 20
+                        elif r < 10: r = 10
+                    else:
+                        # hacer que los planetas se vean mejor desde largas distancias
+                        if r == 0: r = 1
+                        elif r <= 1 and self.scale > 300: r = 2
                     hitbox = 40
                     if r > 50: hitbox = r * 1.2
                     pygame.draw.circle(self.window, entity.colour, (x, y), r)
@@ -370,12 +378,13 @@ class Simulation():
             # self.window.blit(draw_display, (20, self.height - 80))
             # update_display = font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
             # self.window.blit(update_display, (20, self.height - 100 ))
-            
             # fps
             fps_display = font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
             self.window.blit(fps_display, (20, self.height - 60 ))
             # ups
             fps_display = font.render(F"Actualizaciones de físicas / segundo: {50}", 1, (255,255,255))
-            self.window.blit(fps_display, (20, self.height - 40 ))   
-
+            self.window.blit(fps_display, (20, self.height - 40 ))
+            #ui
+            self.window.blit(help_button_image, (self.width - 92, 20))
+            self.window.blit(gear_button_image, (self.width - 52, 20))
             pygame.display.flip()

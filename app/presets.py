@@ -71,7 +71,7 @@ class EarthMoon(Preset):
                 'c': (192, 192, 192)
             },
             '-125544': {
-                'm': 4.15e2,   
+                'm': 4.2e5,   
             }
         }
         self.add_entities('3')

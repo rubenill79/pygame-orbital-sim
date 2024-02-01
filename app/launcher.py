@@ -4,10 +4,11 @@ import tkinter
 import pickle
 
 class Data():
-    def __init__(self, scenario, language, fullscreen):
+    def __init__(self, scenario, language, fullscreen, view_mode):
         self.scenario = scenario
         self.language = language
         self.fullscreen = fullscreen
+        self.view_mode = view_mode
 
 def load_data():   
     # Load the dictionary back
@@ -20,24 +21,31 @@ def load_data():
         label_3.configure(text = "Fallo al cargar la configuración")
         return
     # Create a new object using the loaded attributes
-    loaded_object = Data(
-        scenario=loaded_attributes['scenario'],
-        language=loaded_attributes['language'],
-        fullscreen=loaded_attributes['fullscreen']
-    )
+    try:
+        loaded_object = Data(
+            scenario=loaded_attributes['scenario'],
+            language=loaded_attributes['language'],
+            fullscreen=loaded_attributes['fullscreen'],
+            view_mode=loaded_attributes['view_mode']
+        )
+    except KeyError:
+        return
         
     optionmenu_1.set(loaded_object.scenario)
     radiobutton_var.set(loaded_object.language)
     if loaded_object.fullscreen is False:
         switch_1.toggle()
+    if loaded_object.view_mode is True:
+        switch_2.toggle()
         
-def save_data(scenario, language, fullscreen):
-    data = Data(scenario, language, fullscreen)
+def save_data(scenario, language, fullscreen, view_mode):
+    data = Data(scenario, language, fullscreen, view_mode)
     # Extract relevant attributes into a dictionary
     attributes_to_save = {
         'scenario': data.scenario,
         'language': data.language,
-        'fullscreen': data.fullscreen
+        'fullscreen': data.fullscreen,
+        'view_mode': view_mode
     }
     # Save the dictionary to a file using pickle
     with open('launcher_options.dat', 'wb') as file:
@@ -84,8 +92,9 @@ def button_callback():
     
     s.language = radiobutton_var.get()
     s.fullscreen = bool(switch_1.get())
+    s.view_mode = bool(switch_2.get())
     
-    save_data(text_scenario, s.language, s.fullscreen)
+    save_data(text_scenario, s.language, s.fullscreen, s.view_mode)
     
     app.destroy()
     s.start()
@@ -114,6 +123,9 @@ switch_1 = customtkinter.CTkSwitch(master=frame_1, text="Pantalla completa")
 switch_1.toggle()
 switch_1.pack(pady=10, padx=10)
 
+switch_2 = customtkinter.CTkSwitch(master=frame_1, text="Ampliar tamaños para personas\ncon dificultad de visión")
+switch_2.pack(pady=10, padx=10)
+
 label_4 = customtkinter.CTkLabel(master=frame_1, justify=customtkinter.LEFT, text="Idioma / Language")
 label_4.pack(pady=10, padx=10)
 
@@ -134,7 +146,7 @@ alto_pantalla = app.winfo_screenheight()
 
 # Obtener el ancho y alto de la ventana
 ancho_ventana = 400  # Puedes ajustar el ancho de la ventana
-alto_ventana = 520  # Puedes ajustar el alto de la ventana
+alto_ventana = 600  # Puedes ajustar el alto de la ventana
 
 # Calcular la posición para centrar la ventana
 x = (ancho_pantalla / 2) - (ancho_ventana / 2)
@@ -143,7 +155,7 @@ y = (alto_pantalla / 2) - (alto_ventana / 2)
 # Establecer la posición de la ventana en el centro
 app.geometry(f'{ancho_ventana}x{alto_ventana}+{int(x)}+{int(y)}')
 
-app.iconbitmap('resources\icon.ico')
+app.iconbitmap('resources/icon/icon.ico')
 
 load_data()
 
