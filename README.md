@@ -16,6 +16,7 @@ Pygame Orbital Simulation is a customizable and interactive Python simulation bu
 - Customizable simulation of celestial bodies' orbits.
 - Real time zooming system to bodies to see moons, satelites, ect...
 - Internationalization.
+- SoundTrack
 - Offline mode.
 
 ## Installation
