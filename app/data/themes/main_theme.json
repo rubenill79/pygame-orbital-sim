@@ -1,0 +1,44 @@
+{
+    "button": {
+        "font": [
+            {
+                "name": "m5x7",
+                "size": "32",
+                "bold": "0",
+                "italic": "0",
+                "regular_resource": {
+                    "package": "data.fonts",
+                    "resource": "m5x7.otf"
+                }
+            }
+        ]
+    },
+    "label": {
+        "font": [
+            {
+                "name": "m5x7",
+                "size": "32",
+                "bold": "0",
+                "italic": "0",
+                "regular_resource": {
+                    "package": "data.fonts",
+                    "resource": "m5x7.otf"
+                }
+            }
+        ],
+        "colours": {
+            "dark_bg": "#25292e",
+            "normal_text": "#c5cbd8",
+            "text_shadow": "#505050"
+        },
+        "misc": {
+            "text_horiz_alignment_padding": "20",
+            "text_horiz_alignment": "left"
+        }
+    },
+    "selection_list": {
+        "misc": {
+            "list_item_height": "40"
+        }
+    }
+}

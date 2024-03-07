@@ -1,0 +1,33 @@
+{
+    "global": {
+        "global_name": "pygame-gui.Alpha_centauri",
+        "global_description": "pygame-gui.Alpha_centauri_desc"
+    },
+    "entities": [
+        {
+            "name": "Entidad 1",
+            "description": "Descripción de la entidad 1",
+            "entity_data": {
+                "m": 6e24,
+                "d": 8.5e-5,
+                "c": [0, 0, 255]
+            }
+        },
+        {
+            "name": "Entidad 2",
+            "description": "Descripción de la entidad 2",
+            "entity_data": {
+                "m": 7.342e22,
+                "d": 2.3e-5,
+                "c": [192, 192, 192]
+            }
+        },
+        {
+            "name": "Entidad 3",
+            "description": "Descripción de la entidad 3",
+            "entity_data": {
+                "m": 4.2e5   
+            }
+        }
+    ]
+}

@@ -26,10 +26,9 @@ Pygame Orbital Simulation requires the following dependencies:
 
 - Python 3
 - Pygame 2.5
+- Pygame_gui_
 - Astropy
 - Astroquery
-- Tkinter
-- CustomTkinter
 
 ### User Installation
 
@@ -39,7 +38,7 @@ git clone https://github.com/rubenill79/pygame-orbital-sim
 2. Install dependencies:
 pip install -r requirements.txt (doesnt work yet install manually)
 
-3. Launch `launcher.py` and select the preset you like.
+3. Launch `main.py` positioning vscode or other ide in the app folder.
 
 ## Usage
 
