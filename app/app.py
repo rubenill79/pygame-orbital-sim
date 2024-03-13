@@ -48,9 +48,12 @@ class App:
         pygame.mixer.music.load('resources/music/Arcadia.mp3')
         pygame.mixer.music.play(-1)
         self.setup_music_volume()
+        # Simulacion actual
+        self.simulation = None
         # Crear managers para cada gui
         self.main_menu_manager = self.create_ui_manager()
         self.selection_menu_manager = self.create_ui_manager()
+        self.play_menu_manager = self.create_ui_manager()
         self.options_menu_manager = self.create_ui_manager()
         self.general_options_menu_manager = self.create_ui_manager()
         self.video_options_menu_manager = self.create_ui_manager()
@@ -58,6 +61,7 @@ class App:
         # Crear guis y aplicar idiomas guardados
         self.create_main_menu_gui()
         self.create_selection_menu_gui()
+        self.create_play_menu_gui()
         self.create_options_menu_gui()
         self.create_general_options_menu_gui()
         self.create_video_options_menu_gui()
@@ -66,7 +70,14 @@ class App:
         # Cosas adicionales
         pygame.display.set_icon(pygame.image.load('resources/icon/icon.ico'))
         pygame.display.set_caption('Simulador Orbital')
-    # Método para configurar la pantalla
+    # Métodos genéricos
+    def go_back(self):
+        sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+        return False
+    def go_back_to_main_menu(self):
+        sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+        self.simulation = None
+        return False
     def set_screen(self):   
         if self.fullscreen:
             return pygame.display.set_mode(self.current_resolution, pygame.FULLSCREEN, 32)
@@ -75,8 +86,8 @@ class App:
         else:
              return pygame.display.set_mode(self.current_resolution, 0, 32, 0, 0)
     def setup_gui_volume(self):
-        for sound in ['menu_change', 'menu_move', 'menu_select']:
-            self.sfx_database[sound].set_volume(self.gui_volume if sound == 'menu_change' or sound == 'menu_select' else self.gui_volume*0.5)
+        for sound in self.sfx_database:
+            self.sfx_database[sound].set_volume(self.gui_volume)
     def setup_music_volume(self):
         pygame.mixer.music.set_volume(self.music_volume)
     def create_ui_manager(self):
@@ -99,6 +110,9 @@ class App:
         self.selection_menu_manager.clear_and_reset()
         self.selection_menu_manager = self.create_ui_manager()
         self.create_selection_menu_gui()
+        self.play_menu_manager.clear_and_reset()
+        self.play_menu_manager = self.create_ui_manager()
+        self.create_play_menu_gui()
         self.options_menu_manager.clear_and_reset()
         self.options_menu_manager = self.create_ui_manager()
         self.create_options_menu_gui()
@@ -112,6 +126,9 @@ class App:
         self.audio_options_menu_manager = self.create_ui_manager()
         self.create_audio_options_menu_gui()
         self.set_locale(self.language)
+    def change_manager(self, manager):
+        sfx.play_sound('Menu_Sound_Forward', self.sfx_database)
+        return manager
     def change_fullscreen(self):
         self.fullscreen = not self.fullscreen
         self.change_resolution()
@@ -145,94 +162,101 @@ class App:
         else: return 'X'
     def create_main_menu_gui(self):
         # Definición de los botones del menú
-        self.main_menu_buttons = [
-                ("pygame-gui.Play", 0, self.screen.get_height() - 100),
-                ("pygame-gui.Options", 0, self.screen.get_height() - 100),
-                ("pygame-gui.Credits", 0, self.screen.get_height() - 100),
-                ("pygame-gui.Desktop", 0, self.screen.get_height() - 100)
+        self.main_menu_elements = [
+                ("pygame-gui.Load_sim", self.screen.get_width()/2 - 200, self.screen.get_height()/2 - 120),
+                ("pygame-gui.Options", self.screen.get_width()/2 - 200, self.screen.get_height()/2 - 60),
+                ("pygame-gui.Guide", self.screen.get_width()/2 - 200, self.screen.get_height()/2),
+                ("pygame-gui.Credits", self.screen.get_width()/2 - 200, self.screen.get_height()/2 + 60),
+                ("pygame-gui.Desktop", self.screen.get_width()/2 - 200, self.screen.get_height()/2 + 120)
         ]
-        self.main_menu_button = []
-        # Calculate the space between buttons
-        self.space_between_main_menu_buttons = self.screen.get_width() / (len(self.main_menu_buttons) + 1)
+        self.main_menu_element = []
         # Create buttons and update their positions
-        for i, (button_text, _, y_position) in enumerate(self.main_menu_buttons):
-            x_position = (i + 1) * self.space_between_main_menu_buttons - 110
-            self.main_menu_button.append(gui.create_button(x_position, y_position, 220, 50, button_text, self.main_menu_manager))
+        for element_text, x_position, y_position in self.main_menu_elements:
+            self.main_menu_element.append(gui.create_button(x_position, y_position, 400, 50, element_text, self.main_menu_manager))
     def create_selection_menu_gui(self):
         # Definición de los elementos (botones y etiquetas)
-        self.select_menu_elements = [
+        self.selection_menu_elements = [
             ("pygame-gui.Select", self.screen.get_width()/2 - 600, self.screen.get_height()/10),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/10),
             ("", self.screen.get_width()/2 - 600, self.screen.get_height()/5),
             ("pygame-gui.Connection_mode", self.screen.get_width()/2 - 600, self.screen.get_height() - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height() - 200),
-            ("pygame-gui.Play", self.screen.get_width()/2 - 375, self.screen.get_height() - 100),
+            ("pygame-gui.Launch_sim", self.screen.get_width()/2 - 375, self.screen.get_height() - 100),
             ("pygame-gui.Back", self.screen.get_width()/2 + 125, self.screen.get_height() - 100),
         ]
-        self.select_menu_elements_list = []
+        self.selection_menu_elements_list = []
         # Create buttons and labels and update their positions
-        for i, (element_text, x_position, y_position) in enumerate(self.select_menu_elements):
-            if i == 5 or i == 6: self.select_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, element_text, self.selection_menu_manager))
-            elif i == 0 or i == 3: self.select_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), 50, element_text, self.selection_menu_manager))
+        for i, (element_text, x_position, y_position) in enumerate(self.selection_menu_elements):
+            if i == 5 or i == 6: self.selection_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, element_text, self.selection_menu_manager))
+            elif i == 0 or i == 3: self.selection_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), 50, element_text, self.selection_menu_manager))
             elif i == 1:
-                try: self.select_menu_elements_list.append(gui.create_drop_down(self.presets_list, self.presets_list[0], x_position, y_position, 400, 50, self.selection_menu_manager))
-                except IndexError: self.select_menu_elements_list.append(gui.create_drop_down(['pygame-gui.Error_presets'], 'pygame-gui.Error_presets', x_position, y_position, 400, 50, self.selection_menu_manager))
-            elif i == 4: self.select_menu_elements_list.append(gui.create_button(x_position, y_position, 400, 50, self.check_tf_button(self.offline_mode), self.selection_menu_manager))
-            else: self.select_menu_elements_list.append(gui.create_text_box(self.descriptions_list[0], x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), self.screen.get_height()/2, self.selection_menu_manager))
+                try: self.selection_menu_elements_list.append(gui.create_drop_down(self.presets_list, self.presets_list[0], x_position, y_position, 400, 50, self.selection_menu_manager))
+                except IndexError: self.selection_menu_elements_list.append(gui.create_drop_down(['pygame-gui.Error_presets'], 'pygame-gui.Error_presets', x_position, y_position, 400, 50, self.selection_menu_manager))
+            elif i == 4: self.selection_menu_elements_list.append(gui.create_button(x_position, y_position, 400, 50, self.check_tf_button(self.offline_mode), self.selection_menu_manager))
+            else: self.selection_menu_elements_list.append(gui.create_text_box(self.descriptions_list[0], x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), self.screen.get_height()/2, self.selection_menu_manager))
+    def create_play_menu_gui(self):
+        self.play_menu_elements = [
+            ("≡", self.screen.get_width() - 70, 20)
+        ]
+        self.play_menu_element = []
+        for element_text, x_position, y_position in self.play_menu_elements:
+            self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 50, 50, element_text, self.play_menu_manager, '#menu_button'))
     def create_options_menu_gui(self):
         # Definición de los botones de opciones
-        self.options_menu_buttons = [
-            ("pygame-gui.General", self.screen.get_width()/2 - 100, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Video", self.screen.get_width()/2 - 100, self.screen.get_height()/2- 140),
-            ("pygame-gui.Audio", self.screen.get_width()/2 - 100, self.screen.get_height()/2 - 80),
-            ("pygame-gui.Controls", self.screen.get_width()/2 - 100, self.screen.get_height()/2 - 20),
-            ("pygame-gui.Back", self.screen.get_width()/2 - 100, self.screen.get_height() - 100),
+        self.options_menu_elements = None
+        self.options_menu_elements = []
+        self.options_menu_elements = [
+            ("pygame-gui.General", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 200),
+            ("pygame-gui.Simulation", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Video", self.screen.get_width()/2 - 500, self.screen.get_height()/2- 80),
+            ("pygame-gui.Audio", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 20),
+            ("pygame-gui.Controls", self.screen.get_width()/2 - 500, self.screen.get_height()/2 + 40),
         ]
-        self.options_menu_button = []
+        if self.simulation is not None:
+            self.options_menu_elements.append(("pygame-gui.Back_simulation", self.screen.get_width()/2 - 500, self.screen.get_height() - 160))
+            self.options_menu_elements.append(("pygame-gui.Exit_simulation", self.screen.get_width()/2 - 500, self.screen.get_height() - 100))
+        else: self.options_menu_elements.append(("pygame-gui.Back", self.screen.get_width()/2 - 500, self.screen.get_height() - 100))
+        self.options_menu_element = None
+        self.options_menu_element = []
         # Create buttons and update their positions
-        for element_text, x_position, y_position in self.options_menu_buttons:
-            self.options_menu_button.append(gui.create_button(x_position, y_position, 200, 50, element_text, self.options_menu_manager))
+        for i, (element_text, x_position, y_position) in enumerate(self.options_menu_elements):
+            if i == 5 or i == 6: self.options_menu_element.append(gui.create_button(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 750), 50, element_text, self.options_menu_manager))    
+            else: self.options_menu_element.append(gui.create_button(x_position, y_position, 200, 50, element_text, self.options_menu_manager))
     def create_general_options_menu_gui(self):
         # Definición de los elementos (botones y etiquetas)
         self.general_options_menu_elements = [
-            ("pygame-gui.Language", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 200),
+            ("pygame-gui.Language", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Font_size", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Gui_Scale", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 140),
-            ("pygame-gui.Planet_size", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 80),
+            ("pygame-gui.FPS", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 80),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 80),
-            ("pygame-gui.Advanced_data", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 20),
+            ("pygame-gui.Advanced_data", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 20),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 20),
-            ("pygame-gui.FPS", self.screen.get_width()/2 - 500, self.screen.get_height()/2 + 40),
-            ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 + 40),
-            ("pygame-gui.Back", self.screen.get_width()/2 - 100, self.screen.get_height() - 100),
         ]
         self.general_options_menu_elements_list = []
         # Create buttons and labels and update their positions
         for i, (element_text, x_position, y_position) in enumerate(self.general_options_menu_elements):
-            if i == 10: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 200, 50, element_text, self.general_options_menu_manager))
-            elif i%2 == 0: self.general_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 500), 50, element_text, self.general_options_menu_manager))
+            if i%2 == 0: self.general_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 300), 50, element_text, self.general_options_menu_manager))
             elif i == 1:
                 if self.language == 'en': language = 'pygame-gui.English'
                 elif self.language == 'es': language = 'pygame-gui.Spanish'
                 # Create the dropdown menu
                 self.general_options_menu_elements_list.append(gui.create_drop_down(self.languages_list, language, x_position, y_position, 250, 50, self.general_options_menu_manager))
+            elif i == 5: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_FPS), self.general_options_menu_manager))
             elif i == 7: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_advanced_data), self.general_options_menu_manager))
-            elif i == 9: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_FPS), self.general_options_menu_manager))
             else: self.general_options_menu_elements_list.append(gui.create_label(x_position, y_position, 250, 50, element_text, self.general_options_menu_manager))
     def create_video_options_menu_gui(self):
         # Definición de los elementos (botones y etiquetas)
         self.video_options_menu_elements = [
-            ("pygame-gui.Resolution", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 200),
+            ("pygame-gui.Resolution", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Fullscreen", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Fullscreen", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 140),
-            ("pygame-gui.Back", self.screen.get_width()/2 - 100, self.screen.get_height() - 100),
         ]
         self.video_options_menu_elements_list = []
         for i, (element_text, x_position, y_position) in enumerate(self.video_options_menu_elements):
-            if i == 4: self.video_options_menu_elements_list.append(gui.create_button(x_position, y_position, 200, 50, element_text, self.video_options_menu_manager))
-            elif i%2 == 0: self.video_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 500), 50, element_text, self.video_options_menu_manager))
+            if i%2 == 0: self.video_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 300), 50, element_text, self.video_options_menu_manager))
             elif i == 3: self.video_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.fullscreen), self.video_options_menu_manager))
             elif i == 1:
                 if self.current_resolution == self.resolution_fullscreen: resolution = 'pygame-gui.Native'
@@ -243,18 +267,16 @@ class App:
     def create_audio_options_menu_gui(self):
         # Definición de los elementos (botones y etiquetas)
         self.audio_options_menu_elements = [
-            ("pygame-gui.Music_volume", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 200),
+            ("pygame-gui.Music_volume", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Gui_volume", self.screen.get_width()/2 - 500, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Gui_volume", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2, self.screen.get_height()/2 - 140),
-            ("pygame-gui.Back", self.screen.get_width()/2 - 100, self.screen.get_height() - 100),
         ]
         self.audio_options_menu_elements_list = []
         for i, (element_text, x_position, y_position) in enumerate(self.audio_options_menu_elements):
-            if i == 6: self.audio_options_menu_elements_list.append(gui.create_button(x_position, y_position, 200, 50, element_text, self.audio_options_menu_manager))
-            elif i == 0 or i == 3: self.audio_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 500), 50, element_text, self.audio_options_menu_manager))
+            if i == 0 or i == 3: self.audio_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 300), 50, element_text, self.audio_options_menu_manager))
             elif i == 1 or i == 4:
                 if i == 1: volume = self.music_volume * 100
                 if i == 4: volume = self.gui_volume * 100
@@ -267,282 +289,173 @@ class App:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.KEYDOWN: 
+            if event.key == pygame.K_ESCAPE: return self.go_back()
         if event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
-            sfx.play_sound('menu_move', self.sfx_database)
+            sfx.play_sound('Menu_Sound_Hover', self.sfx_database)
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        if event.type == pygame_gui.UI_BUTTON_ON_UNHOVERED: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        return True
+    def check_play_events(self, event):
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
+            sfx.play_sound('Menu_Sound_Hover', self.sfx_database)
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         if event.type == pygame_gui.UI_BUTTON_ON_UNHOVERED:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-    def draw_background(self):
-        self.screen.fill((0,0,0))
-        self.screen.blit(self.background,(0,0))
+        
+        return True
+    def update_and_draw_gui(self, delta_time, managers):
+        for manager in managers:
+            manager.update(delta_time)
+        if self.simulation is None:
+            self.screen.fill((0,0,0))
+            self.screen.blit(self.background,(0,0))
+        else: self.simulation.draw(self, self.clock)
+        for manager in managers:
+            manager.draw_ui(self.screen)
+        pygame.display.update()
     # Método del menú principal del juego
     def main_menu(self):
         while True:
-            time_delta = self.clock.tick(60) / 1000.0    
+            delta_time = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 self.check_menu_events(event)
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    sfx.play_sound('menu_change', self.sfx_database)
-                    if event.ui_element == self.main_menu_button[0]:
-                        self.select()
-                    if event.ui_element == self.main_menu_button[1]:
-                        self.options()
-                    if event.ui_element == self.main_menu_button[3]:
+                    sfx.play_sound('Menu_Sound_Forward', self.sfx_database)
+                    if event.ui_element == self.main_menu_element[0]: self.select()
+                    elif event.ui_element == self.main_menu_element[1]: self.options()
+                    elif event.ui_element == self.main_menu_element[2]: self.guide()
+                    elif event.ui_element == self.main_menu_element[2]: self.credits()
+                    elif event.ui_element == self.main_menu_element[4]:
                         pygame.quit()
                         sys.exit()
 
                 self.main_menu_manager.process_events(event)
-
-            self.main_menu_manager.update(time_delta)
-            self.draw_background()
-            self.main_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
+            self.update_and_draw_gui(delta_time, [self.main_menu_manager])
     # Método para la selección de sistema
     def select(self):
         running = True 
         while running:
-            time_delta = self.clock.tick(60) / 1000.0       
+            delta_time = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 self.check_menu_events(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
+                running = self.check_menu_events(event)
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.video_options_menu_elements_list[4]:
+                    if event.ui_element == self.selection_menu_elements_list[6]: running = self.go_back()
+                    elif event.ui_element == self.selection_menu_elements_list[4]:
+                        sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
                         self.offline_mode = not self.offline_mode
-                        self.select_menu_elements_list[4].set_text(self.check_tf_button(self.offline_mode))  
-                    if event.ui_element == self.select_menu_elements_list[5]:
-                        sfx.play_sound('menu_change', self.sfx_database)
+                        self.selection_menu_elements_list[4].set_text(self.check_tf_button(self.offline_mode))
+                    elif event.ui_element == self.selection_menu_elements_list[5]:
+                        sfx.play_sound('Menu_Sound_Load_Savefile', self.sfx_database)
                         for i, preset_name in enumerate(self.presets_list):
-                            if self.select_menu_elements_list[1].selected_option == preset_name:
-                                s = CustomPreset(self, entity_data=self.presets_dictionary[self.presets_file_names[i]]["entity_data"])
-                                s.start(self)
+                            if self.selection_menu_elements_list[1].selected_option == preset_name:
+                                self.simulation_(i)
                                 running = False
-                    if event.ui_element == self.select_menu_elements_list[6]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                if event.type == pygame_gui.UI_TEXT_BOX_LINK_CLICKED:
-                    webbrowser.open_new_tab(event.link_target)
-                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                    sfx.play_sound('menu_select', self.sfx_database)
+
+                elif event.type == pygame_gui.UI_TEXT_BOX_LINK_CLICKED: webbrowser.open_new_tab(event.link_target)
+                elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                    sfx.play_sound('Menu_Sound_Load_Savefile', self.sfx_database)
                     for i, preset_name in enumerate(self.presets_list):
                         if event.text == preset_name:
-                            self.select_menu_elements_list[2].set_text(self.descriptions_list[i])   
-
+                            self.selection_menu_elements_list[2].set_text(self.descriptions_list[i])   
+                            
+                if not running: return
                 self.selection_menu_manager.process_events(event)
-
-            self.selection_menu_manager.update(time_delta) 
-            self.draw_background()
-            self.selection_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
+            self.update_and_draw_gui(delta_time, [self.selection_menu_manager])
+    # Método para la pantalla de la simulación    
+    def simulation_(self, index):
+        self.simulation = CustomPreset(self, prest_json=self.presets_dictionary[self.presets_file_names[index]])
+        self.simulation.start(self)
+        self.reset_ui_managers()
+        running = True 
+        while running:
+            delta_time = self.clock.tick(500) / 1000.0
+            # actualizacion de físicas
+            if not self.simulation.paused:
+                self.simulation.physics_delta_t += delta_time
+                # actualizar 50 veces por segundo
+                if self.simulation.physics_delta_t >= 20:
+                    self.simulation.update(self.simulation.physics_delta_t)
+                    self.simulation.physics_delta_t = 0
+            # manejador de eventos
+            for event in pygame.event.get():
+                self.check_play_events(event)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+                        self.options()
+                        if self.simulation is None:
+                            self.reset_ui_managers()
+                            return
+                        else: self.simulation.check_resolution(self)
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == self.play_menu_element[0]:
+                        sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+                        self.options()
+                        if self.simulation is None:
+                            self.reset_ui_managers()
+                            return
+                        else: self.simulation.check_resolution(self)
+                self.simulation.handle_event(event)
+                self.play_menu_manager.process_events(event)
+            # Dibujar simulación
+            self.update_and_draw_gui(delta_time, [self.play_menu_manager])
     # Método para la pantalla de opciones
     def options(self):
-        running = True 
+        running = True
+        current_manager = self.general_options_menu_manager
         while running:
-            time_delta = self.clock.tick(60) / 1000.0
+            delta_time = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
-                self.check_menu_events(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
+                running = self.check_menu_events(event)
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.options_menu_button[0]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        self.options_general()
-                    if event.ui_element == self.options_menu_button[1]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        self.options_video()
-                    if event.ui_element == self.options_menu_button[2]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        self.options_audio()
-                    if event.ui_element == self.options_menu_button[3]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        self.options_controls()
-                    if event.ui_element == self.options_menu_button[4]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-
-                self.options_menu_manager.process_events(event)
-
-            self.options_menu_manager.update(time_delta)
-            self.draw_background()
-            self.options_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
-    # Método para la configuración de opciones generales
-    def options_general(self):
-        running = True 
-        while running:
-            time_delta = self.clock.tick(60) / 1000.0       
-            for event in pygame.event.get():
-                self.check_menu_events(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.general_options_menu_elements_list[7]:
+                    if event.ui_element == self.options_menu_element[0]: current_manager = self.change_manager(self.general_options_menu_manager)
+                    elif event.ui_element == self.options_menu_element[1]: current_manager = self.change_manager(self.simulation_options_menu_manager)
+                    elif event.ui_element == self.options_menu_element[2]: current_manager = self.change_manager(self.video_options_menu_manager)
+                    elif event.ui_element == self.options_menu_element[3]: current_manager = self.change_manager(self.audio_options_menu_manager)
+                    elif event.ui_element == self.options_menu_element[4]: current_manager = self.change_manager(self.controls_menu_manager)
+                    elif event.ui_element == self.options_menu_element[5]: running = self.go_back()
+                    try: 
+                        if event.ui_element == self.options_menu_element[6]: running = self.go_back_to_main_menu()
+                    except IndexError: pass
+                    if event.ui_element == self.general_options_menu_elements_list[5]: 
+                        sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
+                        self.show_FPS = not self.show_FPS
+                        self.general_options_menu_elements_list[5].set_text(self.check_tf_button(self.show_FPS))
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS))
+                    elif event.ui_element == self.general_options_menu_elements_list[7]:
+                        sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
                         self.show_advanced_data = not self.show_advanced_data
                         self.general_options_menu_elements_list[7].set_text(self.check_tf_button(self.show_advanced_data))
                         GeneralSettings.save_general_settings(GeneralSettings(self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS))
-                    if event.ui_element == self.general_options_menu_elements_list[9]:
-                        self.show_FPS = not self.show_FPS
-                        self.general_options_menu_elements_list[9].set_text(self.check_tf_button(self.show_FPS))
-                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS))
-                    if event.ui_element == self.general_options_menu_elements_list[10]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                    else: sfx.play_sound('menu_select', self.sfx_database)
-                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                    sfx.play_sound('menu_select', self.sfx_database)
-                    if event.text == 'pygame-gui.English':
-                        self.set_locale('en')
-                    elif event.text == 'pygame-gui.Spanish':
-                        self.set_locale('es')
-                    GeneralSettings.save_general_settings(GeneralSettings(self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS))
-                self.general_options_menu_manager.process_events(event)
-
-            self.general_options_menu_manager.update(time_delta)
-            self.draw_background()
-            self.general_options_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
-    # Método para la configuración de opciones de video
-    def options_video(self):
-        running = True 
-        while running:
-            time_delta = self.clock.tick(60) / 1000.0       
-            for event in pygame.event.get():
-                self.check_menu_events(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.video_options_menu_elements_list[3]:
+                    elif event.ui_element == self.video_options_menu_elements_list[3]:
                         self.change_fullscreen()
-                        self.video_options_menu_elements_list[3].set_text(self.check_tf_button(self.fullscreen))  
-                    if event.ui_element == self.video_options_menu_elements_list[4]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                    else: sfx.play_sound('menu_select', self.sfx_database)
-                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                    sfx.play_sound('menu_select', self.sfx_database)
-                    if event.text == 'pygame-gui.Native':
-                        self.current_resolution = self.resolution_fullscreen
-                    elif event.text == '1600x800':
-                        self.current_resolution = self.resolution_windowed_1600_800
-                    elif event.text == '1280x720':
-                        self.current_resolution = self.resolution_windowed_1280_720
-                    self.change_resolution()
-                self.video_options_menu_manager.process_events(event)
-
-            self.video_options_menu_manager.update(time_delta)
-            self.draw_background()
-            self.video_options_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
-    # Método para la configuración de opciones de audio
-    def options_audio(self):
-        running = True 
-        while running:
-            time_delta = self.clock.tick(60) / 1000.0       
-            for event in pygame.event.get():
-                self.check_menu_events(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                if event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
+                        self.video_options_menu_elements_list[3].set_text(self.check_tf_button(self.fullscreen))
+                        current_manager = self.video_options_menu_manager
+                elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                    sfx.play_sound('Menu_Sound_Load_Savefile', self.sfx_database)
+                    if event.ui_element == self.general_options_menu_elements_list[1]:
+                        if event.text == 'pygame-gui.English': self.set_locale('en')
+                        elif event.text == 'pygame-gui.Spanish': self.set_locale('es')
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS))
+                    if event.ui_element == self.video_options_menu_elements_list[1]:
+                        if event.text == 'pygame-gui.Native': self.current_resolution = self.resolution_fullscreen
+                        elif event.text == '1600x800': self.current_resolution = self.resolution_windowed_1600_800
+                        elif event.text == '1280x720': self.current_resolution = self.resolution_windowed_1280_720
+                        self.change_resolution()
+                        current_manager = self.video_options_menu_manager
+                elif event.type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
                     if event.ui_element == self.audio_options_menu_elements_list[1]:
                         self.change_music_volume(round(event.value/100, 2))
                         self.audio_options_menu_elements_list[2].set_text(str(int(self.music_volume*100)))
                     if event.ui_element == self.audio_options_menu_elements_list[4]:
                         self.change_gui_volume(round(event.value/100, 2))
                         self.audio_options_menu_elements_list[5].set_text(str(int(self.gui_volume*100)))
-                if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.audio_options_menu_elements_list[6]:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        running = False
-                self.audio_options_menu_manager.process_events(event)
-
-            self.audio_options_menu_manager.update(time_delta)
-            self.draw_background()
-            self.audio_options_menu_manager.draw_ui(self.screen)
-            pygame.display.update()
-    """
-    # Método para la configuración de controles
-    def options_controls(self):
-        running = True
-        while running:
-            # Definición de los botones de opciones de video
-            buttons = [
-                ("", self.screen.get_width()/2, self.screen.get_height()/2 - 100),
-                ("", self.screen.get_width()/2, self.screen.get_height()/2- 20),
-                ("", self.screen.get_width()/2, self.screen.get_height()/2 + 60),
-                ("Atrás", self.screen.get_width()/2, self.screen.get_height() - 100),
-            ]
-            button_rects = self.stablish_hitbox(buttons)
-            # Dibujar elementos en la pantalla de opciones de video
-            self.draw_header("Controles")
-            mx, my = pygame.mouse.get_pos()
-
-            # Dibujar botones y detectar interacción del usuario
-            self.draw_buttons(buttons)
-            self.reset_menu()
-            running = self.check_sub_menu_events(running)  
-        
-            for i, button_rect in enumerate(button_rects):
-                if button_rect.collidepoint((mx, my)):
-                    self.index = i
-                    if not self.hover_sound_played:
-                        sfx.play_sound('menu_move', self.sfx_database)
-                        self.hover_sound_played = True
-                        self.to_hover = True
-                    else:
-                        self.to_hover = True
-                    if self.click:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        if i == 3: running = False
-            if not self.to_hover:
-                self.hover_sound_played = False
-            # Actualización de la pantalla
-            self.check_cursor()
-            pygame.display.update()
-            self.mainClock.tick(60)
-            
-    # Método para la pantalla de créditos
-    def credits(self):
-        running = True
-        while running:
-            # Definición de los botones de la pantalla de créditos
-            buttons = [
-                ("Atrás", self.screen.get_width()/2, self.screen.get_height() - 100),
-            ]
-            button_rects = self.stablish_hitbox(buttons)
-            # Dibujar elementos en la pantalla de créditos
-            self.draw_header("Créditos")
-            mx, my = pygame.mouse.get_pos()
-
-            # Dibujar botones y detectar interacción del usuario
-            self.draw_buttons(buttons)
-            self.reset_menu()
-            running = self.check_sub_menu_events(running)  
-        
-            for i, button_rect in enumerate(button_rects):
-                if button_rect.collidepoint((mx, my)):
-                    self.index = i
-                    if not self.hover_sound_played:
-                        sfx.play_sound('menu_move', self.sfx_database)
-                        self.hover_sound_played = True
-                        self.to_hover = True
-                    else:
-                        self.to_hover = True
-                    if self.click:
-                        sfx.play_sound('menu_change', self.sfx_database)
-                        if i == 0: running = False
-            if not self.to_hover:
-                self.hover_sound_played = False
-            # Actualización de la pantalla
-            self.check_cursor()
-            pygame.display.update()
-            self.mainClock.tick(60)
-"""
+                if not running: return
+                current_manager.process_events(event)
+                self.options_menu_manager.process_events(event) 
+            self.update_and_draw_gui(delta_time, [self.options_menu_manager, current_manager])

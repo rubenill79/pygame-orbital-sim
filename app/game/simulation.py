@@ -14,7 +14,7 @@ class Simulation():
         self,
         app,
         scale = -1, 
-        entity_scale = 10, 
+        entity_scale = 1, 
         sim_rate = 2,
         start_date = None,
     ):    
@@ -22,9 +22,9 @@ class Simulation():
         # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado -1: calculado automáticamente por self.set_scale())
         # entity_scale: ampliación adicional de las entidades para fines de visibilidad
         # sim_rate: cuántos días pasan en la simulación por cada segundo en la vida real (el valor predeterminado es 1 día por segundo)
-        # dx, dy: desplazamiento en px como resultado de la panorámica con las teclas de flecha
+        # dx, dy: desplazamiento en px como resultado del movimiento de la cámara
         # offsetx, offsety: constantes al centro (0,0) en la ventana
-        self.width =app.current_resolution[0]
+        self.width = app.current_resolution[0]
         self.height = app.current_resolution[1]
         self.dx = 0
         self.dy = 0
@@ -181,8 +181,6 @@ class Simulation():
             sys.exit()
         # teclas individuales
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                return False
             if event.key == pygame.K_SPACE and not self.ended: self.paused = not self.paused
             if event.key == pygame.K_q: self.zoom(1.2)
             if event.key == pygame.K_e: self.zoom(0.8)
@@ -195,8 +193,8 @@ class Simulation():
             if event.button == 1: self.mouse_start_pos = pygame.mouse.get_pos()
             if event.button == 4: self.zoom(1.2)
             if event.button == 5: self.zoom(0.8)
-        else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        #else:
+            #pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         # movimiento cámara
         if event.type == pygame.MOUSEMOTION:
             if pygame.mouse.get_pressed()[0]:
@@ -212,8 +210,14 @@ class Simulation():
         if keys[pygame.K_w]: self.scroll(dy = 10)
         if keys[pygame.K_s]: self.scroll(dy = -10)
         if keys[pygame.K_f]: self.toggle_fullscreen()
-        
-        return True
+    
+    def check_resolution(self, app):
+        self.width =app.current_resolution[0]
+        self.height = app.current_resolution[1]
+        self.dx = 0
+        self.dy = 0
+        self.offsetx = self.width / 2
+        self.offsety = self.height / 2
     """
     Método Main
     """
@@ -221,25 +225,16 @@ class Simulation():
         """ 
         Constructor 
         """
-        
-        if app.fullscreen:
-            display_info = pygame.display.Info()
-            self.width = display_info.current_w
-            self.height = display_info.current_h
-            self.offsetx = self.width / 2
-            self.offsety = self.height / 2
-
         # pasar sim_rate a cada entidad en la simulación;
         # también calcula el semieje mayor más grande y calcula la escala si corresponde
         semimajor_axes = []
         for entity in self.orbital_system.entities:
             entity.sim_rate = self.sim_rate
             semimajor_axes.append(entity.a)
-        self.set_scale(max(semimajor_axes))
+        # self.set_scale(max(semimajor_axes))
 
-        font = pygame.font.Font('data/fonts/m5x7.otf', 32)
+        self.font = pygame.font.Font('data/fonts/m5x7.otf', 32)
         
-        clock = pygame.time.Clock()
         self.mouse_start_pos = (self.width/2,self.height/2)
         """
         # Hacer que la ventana se ponga por encima de las demás
@@ -248,22 +243,8 @@ class Simulation():
         """
         Bucle pygame
         """
-        running = True
-        while running:
-            delta_t = clock.tick(500)
-            
-            # manejador de eventos
-            for event in pygame.event.get(): running = self.handle_event(event)
-            # actualizacion de físicas
-            if not self.paused:
-                self.physics_delta_t += delta_t
-                # actualizar 50 veces por segundo
-                if self.physics_delta_t >= 20:
-                    #self.start_time_update = pygame.time.get_ticks() # Debug
-                    self.update(self.physics_delta_t)
-                    self.physics_delta_t = 0
-                    #self.current_time_update = pygame.time.get_ticks() # Debug
-            
+
+    def draw(self, app, clock):
             #start_time_draw = pygame.time.get_ticks() # Debug
             # limpiar pantalla
             app.screen.fill(self.orbital_system.bg)
@@ -294,10 +275,10 @@ class Simulation():
                         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                         if i == 0:
                             if r < 2: r = 2
-                            name_label = font.render(F"{entity.name}", True, (180, 180, 180))
-                            diameter_label = font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
-                            mass_label = font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
-                            density_label = font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
+                            name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
+                            diameter_label = self.font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = self.font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = self.font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 30)))
@@ -305,15 +286,15 @@ class Simulation():
                             entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 70)))
                         else:
                             # Distancia de sol a entidad con el teorema de pitágoras
-                            name_label = font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
-                            position_label = font.render(F"Posición: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
-                            diameter_label = font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
-                            mass_label = font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
-                            density_label = font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
-                            e_label = font.render(F"Excentricidad de la órbita: {entity.e}", True, (180, 180, 180))
-                            a_label = font.render(F"Semieje mayor: {entity.a} UA", True, (180, 180, 180))
-                            speed_label = font.render(F"Velocidad: {entity.speed} UA/día", True, (180, 180, 180))
-                            angle_label = font.render(F"Ángulo de rotación: {entity.angle} rad", True, (180, 180, 180))
+                            name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
+                            position_label = self.font.render(F"Posición: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
+                            diameter_label = self.font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = self.font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = self.font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
+                            e_label = self.font.render(F"Excentricidad de la órbita: {entity.e}", True, (180, 180, 180))
+                            a_label = self.font.render(F"Semieje mayor: {entity.a} UA", True, (180, 180, 180))
+                            speed_label = self.font.render(F"Velocidad: {entity.speed} UA/día", True, (180, 180, 180))
+                            angle_label = self.font.render(F"Ángulo de rotación: {entity.angle} rad", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -334,34 +315,33 @@ class Simulation():
                     app.screen.blit(text, position)
             
             # fecha
-            date_display = font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
+            date_display = self.font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
             app.screen.blit(date_display, (20, 20))
             # velocidad de simulación
             if not self.paused:
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    sim_rate_display = font.render(F"Simulando a: {sim_hours} horas y {sim_minutes:.5f} minutos / segundo" , 1, (255,255,255))                  
+                    sim_rate_display = self.font.render(F"Simulando a: {sim_hours} horas y {sim_minutes:.5f} minutos / segundo" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_display, (20, 40))
-                    sim_rate_hint_display = font.render(F"Una velocidad alta provocará fallos en la simulación" , 1, (255,255,255))                  
+                    sim_rate_hint_display = self.font.render(F"Una velocidad alta provocará fallos en la simulación" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
                 except (AttributeError): pass      
             else:
-                paused_display = font.render("SIMULACIÓN PAUSADA", 1, (0,102,204))
+                paused_display = self.font.render("SIMULACIÓN PAUSADA", 1, (0,102,204))
                 app.screen.blit(paused_display, (self.width / 2 - paused_display.get_width()/2, 100))
             if self.ended:
-                error_display = font.render("ERROR: NO SE PUEDE REANUDAR LA SIMULACIÓN", 1, (0,102,204))
+                error_display = self.font.render("ERROR: NO SE PUEDE REANUDAR LA SIMULACIÓN", 1, (0,102,204))
                 app.screen.blit(error_display, (self.width / 2 - error_display.get_width()/2, 120))
             #current_time_draw = pygame.time.get_ticks() # Debug   
             # tiempos de refresco
-            # draw_display = font.render(F"Tiempo de renderizado: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
+            # draw_display = self.font.render(F"Tiempo de renderizado: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
             # app.screen.blit(draw_display, (20, self.height - 80))
-            # update_display = font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
+            # update_display = self.font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
             # app.screen.blit(update_display, (20, self.height - 100 ))
             # fps
-            fps_display = font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
+            fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
             app.screen.blit(fps_display, (20, self.height - 60 ))
             # ups
-            fps_display = font.render(F"Actualizaciones de físicas / segundo: {50}", 1, (255,255,255))
+            fps_display = self.font.render(F"Actualizaciones de físicas / segundo: {50}", 1, (255,255,255))
             app.screen.blit(fps_display, (20, self.height - 40 ))
-            pygame.display.flip()

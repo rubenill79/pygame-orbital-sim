@@ -1,5 +1,5 @@
 python 3 
-pygame 2.5
-pygame_gui
+pygame-ce
+pygame-gui
 astropy
 astroquery

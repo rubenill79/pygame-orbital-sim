@@ -1,11 +1,19 @@
 import pygame
 import pygame_gui
+from pygame_gui.core import ObjectID
 
 def create_button(x_position, y_position, width, height, text, manager):
     return pygame_gui.elements.UIButton(
                 pygame.Rect((x_position, y_position), (width, height)),
                 text,
                 manager)
+
+def create_button_with_id(x_position, y_position, width, height, text, manager, object_id):
+    return pygame_gui.elements.UIButton(
+                pygame.Rect((x_position, y_position), (width, height)),
+                text,
+                manager,
+                object_id = ObjectID(object_id=object_id))
 
 def create_label(x_position, y_position, width, height, text, manager):
     return pygame_gui.elements.UILabel(

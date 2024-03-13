@@ -9,8 +9,11 @@ class GeneralSettings:
         self.show_FPS = show_FPS
 
     def save_general_settings(self):
-        with open('data/general_settings.dat', 'wb') as file:
-            pickle.dump(self, file)
+        try:
+            with open('data/general_settings.dat', 'wb') as file:
+                pickle.dump(self, file)
+        except PermissionError:
+            return
 
     @classmethod
     def load_general_settings(cls):

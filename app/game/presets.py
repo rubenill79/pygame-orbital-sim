@@ -6,8 +6,8 @@ class Preset(Simulation):
     def __init__(self,
         app,
         scale = -1, 
-        entity_scale = 5, 
-        sim_rate = 3,
+        entity_scale = 1, 
+        sim_rate = 1,
         start_date = None,
     ):
         super().__init__(app, scale, entity_scale, sim_rate, start_date)
@@ -20,8 +20,8 @@ class Preset(Simulation):
                 colour = self.entity_data[id_]['c']
 
             except KeyError:
-                 # No hace falta que todas tengan color ya que hay uno prediseñado para satélites y objetos diminutos
-                colour = (142, 109, 97)
+                # No hace falta que todas tengan color ya que hay uno prediseñado para satélites y objetos diminutos
+                colour = (255, 255, 255)
             
             try:
                 diameter = self.entity_data[id_]['d']
@@ -47,14 +47,15 @@ class Preset(Simulation):
 class CustomPreset(Preset):
     def __init__(self,
         app,
-        entity_data,
+        prest_json,
         scale = -1, 
         entity_scale = 1, 
         sim_rate = 1,
         start_date = None,
     ):
+        sim_rate = prest_json["global"]["min_sim_rate"]
         super().__init__(app, scale, entity_scale, sim_rate, start_date)
-
-        self.entity_data = entity_data
+        
+        self.entity_data = prest_json["entity_data"]
         # El observer_id lo obtenemos de esta manera
-        self.add_entities(list(entity_data.keys())[0])
+        self.add_entities(list(self.entity_data.keys())[0])

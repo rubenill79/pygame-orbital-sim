@@ -13,6 +13,21 @@
             }
         ]
     },
+    "#menu_button":
+    {
+        "font": [
+            {
+                "name": "m5x7",
+                "size": "64",
+                "bold": "0",
+                "italic": "0",
+                "regular_resource": {
+                    "package": "data.fonts",
+                    "resource": "m5x7.otf"
+                }
+            }
+        ]
+   },
     "label": {
         "font": [
             {

@@ -26,8 +26,8 @@ Pygame Orbital Simulation is a customizable and interactive Python simulation bu
 Pygame Orbital Simulation requires the following dependencies:
 
 - Python 3
-- Pygame 2.5
-- Pygame_gui
+- Pygame-ce
+- Pygame-gui
 - Astropy
 - Astroquery
 

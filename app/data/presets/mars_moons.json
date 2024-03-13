@@ -1,0 +1,28 @@
+{
+    "global": {
+        "global_name": "pygame-gui.Mars_moons",
+        "global_description": "pygame-gui.Mars_moons_desc",
+        "min_sim_rate": 0.01,
+        "max_sim_rate": 1
+    },
+    "entity_data": {
+        "4": {
+            "m": 6.4e23,
+            "d": 4.53e-5,
+            "c": [255, 69, 0]
+        },
+        "401": {
+            "m": 1.072e16,
+            "d": 22.5e-7,
+            "c": [40, 40, 40]
+        },
+        "402": {
+            "m": 2.244e15,
+            "d": 12.4e-7,
+            "c": [50, 50, 50]
+        },
+        "-74": {
+            "m": 2.180e3
+        }
+    }
+}
