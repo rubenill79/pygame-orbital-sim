@@ -77,6 +77,7 @@ class App:
     def go_back_to_main_menu(self):
         sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
         self.simulation = None
+        self.reset_ui_managers()
         return False
     def set_screen(self):   
         if self.fullscreen:
@@ -148,6 +149,7 @@ class App:
             VideoSettings.save_video_settings(VideoSettings(self.fullscreen, self.current_resolution))
             os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.reset_ui_managers()
+        if self.simulation is not None: self.simulation.check_resolution(self)
         self.background = pygame.transform.scale(self.background, (self.current_resolution))
     def change_music_volume(self, volume):
         self.music_volume = volume
@@ -373,14 +375,7 @@ class App:
         self.reset_ui_managers()
         running = True 
         while running:
-            delta_time = self.clock.tick(500) / 1000.0
-            # actualizacion de físicas
-            if not self.simulation.paused:
-                self.simulation.physics_delta_t += delta_time
-                # actualizar 50 veces por segundo
-                if self.simulation.physics_delta_t >= 20:
-                    self.simulation.update(self.simulation.physics_delta_t)
-                    self.simulation.physics_delta_t = 0
+            delta_time = self.clock.tick(500)
             # manejador de eventos
             for event in pygame.event.get():
                 self.check_play_events(event)
@@ -388,20 +383,21 @@ class App:
                     if event.key == pygame.K_ESCAPE:
                         sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
                         self.options()
-                        if self.simulation is None:
-                            self.reset_ui_managers()
-                            return
-                        else: self.simulation.check_resolution(self)
+                        if self.simulation is None: return
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.play_menu_element[0]:
                         sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
                         self.options()
-                        if self.simulation is None:
-                            self.reset_ui_managers()
-                            return
-                        else: self.simulation.check_resolution(self)
+                        if self.simulation is None: return
                 self.simulation.handle_event(event)
                 self.play_menu_manager.process_events(event)
+            # actualizacion de físicas
+            if not self.simulation.paused:
+                self.simulation.physics_delta_t += delta_time
+                # actualizar 50 veces por segundo
+                if self.simulation.physics_delta_t >= 20:
+                    self.simulation.update(self.simulation.physics_delta_t)
+                    self.simulation.physics_delta_t = 0
             # Dibujar simulación
             self.update_and_draw_gui(delta_time, [self.play_menu_manager])
     # Método para la pantalla de opciones
