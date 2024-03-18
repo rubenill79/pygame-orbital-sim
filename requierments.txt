@@ -1,5 +1,5 @@
-python 3 
-pygame-ce
-pygame-gui
-astropy
-astroquery
+astropy==6.0.0
+astropy-iers-data==0.2024.3.11.18.33.3
+astroquery==0.4.7
+pygame-ce==2.4.1
+pygame-gui==0.6.9
