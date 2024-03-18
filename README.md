@@ -7,15 +7,16 @@ Pygame Orbital Simulation is a customizable and interactive Python simulation bu
 ## Features
 
 - Several included preset arrangements.
+- Create your own preset arrangements.
 - Precise positioning and movement vectors obtained through built-in access to JPL’s HORIZONS system.
 - Interactable objects with advanced data shown.
+- Internationalization.
 
 ## Future features
 
 - More included preset arrangements.
-- Customizable simulation of celestial bodies' orbits.
+
 - Real time zooming system to bodies to see moons, satelites, ect...
-- Internationalization.
 - SoundTrack
 - Offline mode.
 
@@ -37,7 +38,7 @@ Pygame Orbital Simulation requires the following dependencies:
 git clone https://github.com/rubenill79/pygame-orbital-sim
 
 2. Install dependencies:
-pip install -r requirements.txt (doesnt work yet install manually)
+pip install -r requirements.txt
 
 3. Launch `main.py` positioning vscode or other ide in the app folder.
 
