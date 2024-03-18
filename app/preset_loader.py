@@ -41,3 +41,13 @@ def get_presets_description(presets_dictionary):
         description = preset_data['global']['global_description']  # Access 'global_name' directly from preset_data
         global_descriptions.append(description)
     return global_descriptions
+
+# Function to get translated text for pygame blit text elements
+def get_localized_text(key, language):
+    translations_file = f'data/translations/pygame-gui.{language}.json'
+    with open(translations_file, 'r', encoding="utf-8") as file:
+        translations = json.load(file)
+    if language in translations and key in translations[language]:
+        return translations[language][key]
+    else:
+        return key  # Return the key if translation not found

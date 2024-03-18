@@ -40,7 +40,6 @@ class App:
         self.presets_dictionary, self.presets_file_names = pst.load_presets('data/presets/')
         self.presets_list = pst.get_presets_name(self.presets_dictionary)
         self.descriptions_list = pst.get_presets_description(self.presets_dictionary)
-        #self.presets_list = ['Tierra - Luna','Sistema Solar Interno','Sistema Solar Completo','Sistema Solar Avanzado']
         self.offline_mode = False
         # Sonido
         self.sfx_database = sfx.load_sfx('resources/sfx/')
@@ -104,6 +103,10 @@ class App:
         self.general_options_menu_manager.set_locale(self.language)
         self.video_options_menu_manager.set_locale(self.language)
         self.audio_options_menu_manager.set_locale(self.language)
+        if self.simulation is not None:
+            self.play_menu_manager.clear_and_reset()
+            self.play_menu_manager = self.create_ui_manager()
+            self.create_play_menu_gui()
     def reset_ui_managers(self):
         self.main_menu_manager.clear_and_reset()
         self.main_menu_manager = self.create_ui_manager()
@@ -195,14 +198,53 @@ class App:
                 try: self.selection_menu_elements_list.append(gui.create_drop_down(self.presets_list, self.presets_list[0], x_position, y_position, 400, 50, self.selection_menu_manager))
                 except IndexError: self.selection_menu_elements_list.append(gui.create_drop_down(['pygame-gui.Error_presets'], 'pygame-gui.Error_presets', x_position, y_position, 400, 50, self.selection_menu_manager))
             elif i == 4: self.selection_menu_elements_list.append(gui.create_button(x_position, y_position, 400, 50, self.check_tf_button(self.offline_mode), self.selection_menu_manager))
-            else: self.selection_menu_elements_list.append(gui.create_text_box(self.descriptions_list[0], x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), self.screen.get_height()/2, self.selection_menu_manager))
+            else: 
+                try: self.selection_menu_elements_list.append(gui.create_text_box(self.descriptions_list[0], x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), self.screen.get_height()/2, self.selection_menu_manager))
+                except IndexError: self.selection_menu_elements_list.append(gui.create_text_box('pygame-gui.Error_presets', x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 600), self.screen.get_height()/2, self.selection_menu_manager))
     def create_play_menu_gui(self):
         self.play_menu_elements = [
-            ("≡", self.screen.get_width() - 70, 20)
+            ("≡", self.screen.get_width() - 70, 20),
+            ("Sim_paused", 0, 0),
+            ("Diameter", 0, 0),
+            ("Mass", 0, 0),
+            ("Density", 0, 0),
+            ("Position", 0, 0),
+            ("Eccentricity", 0, 0),
+            ("Major_axis", 0, 0),
+            ("Velocity", 0, 0),
+            ("Day", 0, 0),
+            ("Angle", 0, 0),
+            ("Simulating", 0, 0),
+            ("And", 0, 0),
+            ("Per_second", 0, 0),
+            ("Hours", 0, 0),
+            ("Minutes", 0, 0),
+            ("High_speed", 0, 0),
+            ("Sim_error", 0, 0),
+            ("Physics_update", 0, 0),
         ]
         self.play_menu_element = []
-        for element_text, x_position, y_position in self.play_menu_elements:
-            self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 50, 50, element_text, self.play_menu_manager, '#menu_button'))
+        for i, (element_text, x_position, y_position) in enumerate(self.play_menu_elements):
+            if i == 0:
+                self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 50, 50, element_text, self.play_menu_manager, '#menu_button'))
+            elif i == 1: self.simulation_paused_text = pst.get_localized_text(element_text, self.language)
+            elif i == 2: self.diameter_text = pst.get_localized_text(element_text, self.language)
+            elif i == 3: self.mass_text = pst.get_localized_text(element_text, self.language)
+            elif i == 4: self.density_text = pst.get_localized_text(element_text, self.language)
+            elif i == 5: self.position_text = pst.get_localized_text(element_text, self.language)
+            elif i == 6: self.eccentricity_text = pst.get_localized_text(element_text, self.language)
+            elif i == 7: self.major_axis_text = pst.get_localized_text(element_text, self.language)
+            elif i == 8: self.velocity_text = pst.get_localized_text(element_text, self.language)
+            elif i == 9: self.day_text = pst.get_localized_text(element_text, self.language)
+            elif i == 10: self.angle_text = pst.get_localized_text(element_text, self.language)
+            elif i == 11: self.simulating_text = pst.get_localized_text(element_text, self.language)
+            elif i == 12: self.and_text = pst.get_localized_text(element_text, self.language)
+            elif i == 13: self.per_second_text = pst.get_localized_text(element_text, self.language)
+            elif i == 14: self.hours_text = pst.get_localized_text(element_text, self.language)
+            elif i == 15: self.minutes_text = pst.get_localized_text(element_text, self.language)
+            elif i == 16: self.high_speed_text = pst.get_localized_text(element_text, self.language)
+            elif i == 17: self.sim_error_text = pst.get_localized_text(element_text, self.language)
+            elif i == 18: self.physics_update_text = pst.get_localized_text(element_text, self.language)
     def create_options_menu_gui(self):
         # Definición de los botones de opciones
         self.options_menu_elements = None
@@ -229,7 +271,7 @@ class App:
         self.general_options_menu_elements = [
             ("pygame-gui.Language", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Gui_Scale", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Gui_scale", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 140),
             ("pygame-gui.FPS", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 80),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 80),
@@ -329,8 +371,8 @@ class App:
                     sfx.play_sound('Menu_Sound_Forward', self.sfx_database)
                     if event.ui_element == self.main_menu_element[0]: self.select()
                     elif event.ui_element == self.main_menu_element[1]: self.options()
-                    elif event.ui_element == self.main_menu_element[2]: self.guide()
-                    elif event.ui_element == self.main_menu_element[2]: self.credits()
+                    elif event.ui_element == self.main_menu_element[2]: pass#self.guide() 
+                    elif event.ui_element == self.main_menu_element[3]: pass#self.credits()
                     elif event.ui_element == self.main_menu_element[4]:
                         pygame.quit()
                         sys.exit()
@@ -373,6 +415,7 @@ class App:
         self.simulation = CustomPreset(self, prest_json=self.presets_dictionary[self.presets_file_names[index]])
         self.simulation.start(self)
         self.reset_ui_managers()
+        self.paused = False
         running = True 
         while running:
             delta_time = self.clock.tick(500)
@@ -382,13 +425,17 @@ class App:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+                        self.paused = True
                         self.options()
+                        self.paused = False
                         if self.simulation is None: return
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.play_menu_element[0]:
                         sfx.play_sound('Menu_Sound_Backwards', self.sfx_database)
+                        self.paused = True
                         self.options()
-                        if self.simulation is None: return
+                        self.paused = False
+                        if self.simulation is None: return     
                 self.simulation.handle_event(event)
                 self.play_menu_manager.process_events(event)
             # actualizacion de físicas
@@ -410,10 +457,10 @@ class App:
                 running = self.check_menu_events(event)
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.options_menu_element[0]: current_manager = self.change_manager(self.general_options_menu_manager)
-                    elif event.ui_element == self.options_menu_element[1]: current_manager = self.change_manager(self.simulation_options_menu_manager)
+                    elif event.ui_element == self.options_menu_element[1]: pass#current_manager = self.change_manager(self.simulation_options_menu_manager)
                     elif event.ui_element == self.options_menu_element[2]: current_manager = self.change_manager(self.video_options_menu_manager)
                     elif event.ui_element == self.options_menu_element[3]: current_manager = self.change_manager(self.audio_options_menu_manager)
-                    elif event.ui_element == self.options_menu_element[4]: current_manager = self.change_manager(self.controls_menu_manager)
+                    elif event.ui_element == self.options_menu_element[4]: pass#current_manager = self.change_manager(self.controls_menu_manager)
                     elif event.ui_element == self.options_menu_element[5]: running = self.go_back()
                     try: 
                         if event.ui_element == self.options_menu_element[6]: running = self.go_back_to_main_menu()

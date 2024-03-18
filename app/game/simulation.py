@@ -231,7 +231,7 @@ class Simulation():
         for entity in self.orbital_system.entities:
             entity.sim_rate = self.sim_rate
             semimajor_axes.append(entity.a)
-        # self.set_scale(max(semimajor_axes))
+        self.set_scale(max(semimajor_axes))
 
         self.font = pygame.font.Font('data/fonts/m5x7.otf', 32)
         
@@ -270,15 +270,15 @@ class Simulation():
        
                     # solo dibujar las etiquetas si hay hover del raton
                     mouse_current_pos = pygame.mouse.get_pos()
-                    if not self.hovered and (mouse_current_pos[0] - hitbox < x and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y and y < mouse_current_pos[1] + hitbox):
+                    if not app.paused and not self.hovered and (mouse_current_pos[0] - hitbox < x and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y and y < mouse_current_pos[1] + hitbox):
                         self.hovered = True
                         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                         if i == 0:
                             if r < 2: r = 2
                             name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
-                            diameter_label = self.font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
-                            mass_label = self.font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
-                            density_label = self.font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
+                            diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 30)))
@@ -287,14 +287,14 @@ class Simulation():
                         else:
                             # Distancia de sol a entidad con el teorema de pitágoras
                             name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
-                            position_label = self.font.render(F"Posición: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
-                            diameter_label = self.font.render(F"Diámetro: {entity.diameter} UA", True, (180, 180, 180))
-                            mass_label = self.font.render(F"Masa: {entity.mass} kg", True, (180, 180, 180))
-                            density_label = self.font.render(F"Densidad: {entity.density} kg/UA", True, (180, 180, 180))
-                            e_label = self.font.render(F"Excentricidad de la órbita: {entity.e}", True, (180, 180, 180))
-                            a_label = self.font.render(F"Semieje mayor: {entity.a} UA", True, (180, 180, 180))
-                            speed_label = self.font.render(F"Velocidad: {entity.speed} UA/día", True, (180, 180, 180))
-                            angle_label = self.font.render(F"Ángulo de rotación: {entity.angle} rad", True, (180, 180, 180))
+                            position_label = self.font.render(F"{app.position_text}: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
+                            diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                            mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
+                            density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
+                            e_label = self.font.render(F"{app.eccentricity_text}: {entity.e}", True, (180, 180, 180))
+                            a_label = self.font.render(F"{app.major_axis_text}: {entity.a} UA", True, (180, 180, 180))
+                            speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA/{app.day_text}", True, (180, 180, 180))
+                            angle_label = self.font.render(F"{app.angle_text}: {entity.angle} rad", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -322,16 +322,16 @@ class Simulation():
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    sim_rate_display = self.font.render(F"Simulando a: {sim_hours} horas y {sim_minutes:.5f} minutos / segundo" , 1, (255,255,255))                  
+                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.per_second_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_display, (20, 40))
-                    sim_rate_hint_display = self.font.render(F"Una velocidad alta provocará fallos en la simulación" , 1, (255,255,255))                  
+                    sim_rate_hint_display = self.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
                 except (AttributeError): pass      
             else:
-                paused_display = self.font.render("SIMULACIÓN PAUSADA", 1, (0,102,204))
+                paused_display = self.font.render(app.simulation_paused_text, 1, (0,102,204))
                 app.screen.blit(paused_display, (self.width / 2 - paused_display.get_width()/2, 100))
             if self.ended:
-                error_display = self.font.render("ERROR: NO SE PUEDE REANUDAR LA SIMULACIÓN", 1, (0,102,204))
+                error_display = self.font.render(F"{app.sim_error_text}", 1, (0,102,204))
                 app.screen.blit(error_display, (self.width / 2 - error_display.get_width()/2, 120))
             #current_time_draw = pygame.time.get_ticks() # Debug   
             # tiempos de refresco
@@ -343,5 +343,5 @@ class Simulation():
             fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
             app.screen.blit(fps_display, (20, self.height - 60 ))
             # ups
-            fps_display = self.font.render(F"Actualizaciones de físicas / segundo: {50}", 1, (255,255,255))
+            fps_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
             app.screen.blit(fps_display, (20, self.height - 40 ))
