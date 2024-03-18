@@ -293,7 +293,7 @@ class Simulation():
                             density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
                             e_label = self.font.render(F"{app.eccentricity_text}: {entity.e}", True, (180, 180, 180))
                             a_label = self.font.render(F"{app.major_axis_text}: {entity.a} UA", True, (180, 180, 180))
-                            speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA/{app.day_text}", True, (180, 180, 180))
+                            speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA {app.per_day_text}", True, (180, 180, 180))
                             angle_label = self.font.render(F"{app.angle_text}: {entity.angle} rad", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))

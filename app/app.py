@@ -212,7 +212,7 @@ class App:
             ("Eccentricity", 0, 0),
             ("Major_axis", 0, 0),
             ("Velocity", 0, 0),
-            ("Day", 0, 0),
+            ("Per_day", 0, 0),
             ("Angle", 0, 0),
             ("Simulating", 0, 0),
             ("And", 0, 0),
@@ -235,7 +235,7 @@ class App:
             elif i == 6: self.eccentricity_text = pst.get_localized_text(element_text, self.language)
             elif i == 7: self.major_axis_text = pst.get_localized_text(element_text, self.language)
             elif i == 8: self.velocity_text = pst.get_localized_text(element_text, self.language)
-            elif i == 9: self.day_text = pst.get_localized_text(element_text, self.language)
+            elif i == 9: self.per_day_text = pst.get_localized_text(element_text, self.language)
             elif i == 10: self.angle_text = pst.get_localized_text(element_text, self.language)
             elif i == 11: self.simulating_text = pst.get_localized_text(element_text, self.language)
             elif i == 12: self.and_text = pst.get_localized_text(element_text, self.language)
