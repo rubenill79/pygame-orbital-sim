@@ -3,14 +3,8 @@ from .simulation import Simulation
 Clase padre para los sistemas prediseñados / Hereda de Simulation
 """
 class Preset(Simulation):
-    def __init__(self,
-        app,
-        scale = -1, 
-        entity_scale = 1, 
-        sim_rate = 1,
-        start_date = None,
-    ):
-        super().__init__(app, scale, entity_scale, sim_rate, start_date)
+    def __init__(self, app, sim_rate):
+        super().__init__(app, sim_rate)
 
     def add_entities(self, observer_id):
 
@@ -45,16 +39,9 @@ class Preset(Simulation):
             print('Entidad {} de {} añadida con éxito'.format(i + 1, len(self.entity_data)))
 
 class CustomPreset(Preset):
-    def __init__(self,
-        app,
-        prest_json,
-        scale = -1, 
-        entity_scale = 1, 
-        sim_rate = 1,
-        start_date = None,
-    ):
+    def __init__(self, app, prest_json):
         sim_rate = prest_json["global"]["min_sim_rate"]
-        super().__init__(app, scale, entity_scale, sim_rate, start_date)
+        super().__init__(app, sim_rate)
         
         self.entity_data = prest_json["entity_data"]
         # El observer_id lo obtenemos de esta manera

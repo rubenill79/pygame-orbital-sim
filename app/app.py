@@ -1,14 +1,14 @@
 # Importación de bibliotecas necesarias
 import os, sys
+import webbrowser
 import pygame
 import pygame_gui
 import gui_components as gui
-import webbrowser
-from save_load import GeneralSettings, VideoSettings, AudioSettings
 import sfx_player as sfx
 import image_loader as img
 import preset_loader as pst
-from game.presets import CustomPreset
+from save_load import GeneralSettings, SimSettings, VideoSettings, AudioSettings
+from sim.presets import CustomPreset
 
 # Definición de la clase principal del juego
 class App:
@@ -33,7 +33,8 @@ class App:
         self.background = img.load_img('menu_background')
         self.background = pygame.transform.scale(self.background, (self.current_resolution))
         # Opciones
-        self.language, self.font_size, self.planet_size, self.show_advanced_data, self.show_FPS = GeneralSettings.load_general_settings()
+        self.language, self.gui_scale, self.show_FPS, self.show_advanced_data = GeneralSettings.load_general_settings()
+        #self.distance_mag, self.angle_mag, self.mass_mag, self.density_mag, self.planet_size = GeneralSettings.load_general_settings()
         self.music_volume, self.gui_volume = AudioSettings.load_audio_settings()
         self.languages_list = ['pygame-gui.Spanish','pygame-gui.English']
         self.resolutions_list = ['pygame-gui.Native','1600x800','1280x720']
@@ -222,6 +223,7 @@ class App:
             ("High_speed", 0, 0),
             ("Sim_error", 0, 0),
             ("Physics_update", 0, 0),
+            ("Small_diameter", 0, 0),
         ]
         self.play_menu_element = []
         for i, (element_text, x_position, y_position) in enumerate(self.play_menu_elements):
@@ -245,6 +247,7 @@ class App:
             elif i == 16: self.high_speed_text = pst.get_localized_text(element_text, self.language)
             elif i == 17: self.sim_error_text = pst.get_localized_text(element_text, self.language)
             elif i == 18: self.physics_update_text = pst.get_localized_text(element_text, self.language)
+            elif i == 19: self.small_diameter_text = pst.get_localized_text(element_text, self.language)
     def create_options_menu_gui(self):
         # Definición de los botones de opciones
         self.options_menu_elements = None

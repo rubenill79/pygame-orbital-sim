@@ -56,6 +56,7 @@
     "Minutes": "minutes",
     "High_speed": "High speed will cause simulation misscalculations",
     "Sim_error": "ERROR: CANNOT RESUME SIMULATION",
-    "Physics_update": "Physics updates / second"
+    "Physics_update": "Physics updates / second",
+    "Small_diameter": "Insignificant"
   }
 }

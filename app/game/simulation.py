@@ -10,14 +10,7 @@ from astropy.time import Time
 from .environment import OrbitalSystem
 
 class Simulation():
-    def __init__(
-        self,
-        app,
-        scale = -1, 
-        entity_scale = 1, 
-        sim_rate = 2,
-        start_date = None,
-    ):    
+    def __init__(self, app, sim_rate, scale = 1,  entity_scale = 1, start_date = None):    
         # dimensions: (ancho, alto) de la ventana en píxeles
         # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado -1: calculado automáticamente por self.set_scale())
         # entity_scale: ampliación adicional de las entidades para fines de visibilidad
@@ -112,7 +105,7 @@ class Simulation():
             e = e,
             a = a
         )
-    def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 0.5e-5):
+    def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 6.69e-9):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
         x, y, speed, angle, e, a, name = self.get_horizons_positioning(entity_id, observer_id)
 
@@ -258,7 +251,7 @@ class Simulation():
                 relative_scale = self.scale / self.default_scale
                 x = relative_scale * ((self.scale * entity.x) + self.dx) + self.offsetx
                 y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflected across y-axis to compensate for pygame's reversed axes
-                r = abs(int(entity.diameter * self.scale * self.entity_scale / 2 ))
+                r = abs(int((entity.diameter * 150) * self.scale * self.entity_scale / 2 )) #*150 to pass it form UA to Km
                 # solo dibujar lo que se va a ver en pantalla
                 if x < self.width and y < self.height:
                     # hacer que los planetas se vean mejor desde largas distancias
@@ -288,7 +281,8 @@ class Simulation():
                             # Distancia de sol a entidad con el teorema de pitágoras
                             name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
                             position_label = self.font.render(F"{app.position_text}: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
-                            diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                            if entity.diameter == 6.69e-9: diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                            else: diameter_label = self.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
                             mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
                             density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
                             e_label = self.font.render(F"{app.eccentricity_text}: {entity.e}", True, (180, 180, 180))

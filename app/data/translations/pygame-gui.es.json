@@ -56,6 +56,7 @@
     "Minutes": "minutos",
     "High_speed": "Una velocidad alta provocará fallos en la simulación",
     "Sim_error": "ERROR: NO SE PUEDE REANUDAR LA SIMULACIÓN",
-    "Physics_update": "Actualizaciones de físicas / segundo"
+    "Physics_update": "Actualizaciones de físicas / segundo",
+    "Small_diameter": "Insignificante"
   }
 }

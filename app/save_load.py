@@ -1,31 +1,53 @@
 import pickle
 
 class GeneralSettings:
-    def __init__(self, language='es', font_size='32', planet_size='real', advanced_data=False, show_FPS=True):
+    def __init__(self, language='es', gui_scale=100, show_FPS=True, advanced_data=False):
         self.language = language
-        self.font_size = font_size
-        self.planet_size = planet_size
-        self.advanced_data = advanced_data
+        self.gui_scale = gui_scale
         self.show_FPS = show_FPS
+        self.advanced_data = advanced_data
 
     def save_general_settings(self):
         try:
             with open('data/general_settings.dat', 'wb') as file:
                 pickle.dump(self, file)
-        except PermissionError:
-            return
+        except PermissionError: return
 
     @classmethod
     def load_general_settings(cls):
         try:
             with open('data/general_settings.dat', 'rb') as file:
-                try:
+                try: 
                     general_settings = pickle.load(file)
-                    return general_settings.language, general_settings.font_size, general_settings.planet_size, general_settings.advanced_data, general_settings.show_FPS
-                except pickle.UnpicklingError:
-                    return 'es', '32', 'real', False, True
-        except FileNotFoundError:
-            return 'es', '32', 'real', False, True
+                    try: return general_settings.language, general_settings.gui_scale, general_settings.show_FPS, general_settings.advanced_data
+                    except AttributeError: pass
+                except pickle.UnpicklingError: pass
+        except FileNotFoundError: pass
+        return 'es', 100, True, False
+
+class SimSettings:
+    def __init__(self, distance_mag='AU', angle_mag='Deg', mass_mag='Kg', density_mag='kg/UA', planet_size=1):
+        self.distance_mag = distance_mag
+        self.angle_mag = angle_mag
+        self.mass_mag = mass_mag
+        self.density_mag = density_mag
+        self.planet_size = planet_size
+        
+    def save_sim_settings(self):
+        with open('data/sim_settings.dat', 'wb') as file:
+            pickle.dump(self, file)
+        
+    @classmethod
+    def load_sim_settings():
+        try:
+            with open('data/sim_settings.dat', 'rb') as file:
+                try: 
+                    sim_settings = pickle.load(file)
+                    try: return sim_settings.distance_mag, sim_settings.angle_mag, sim_settings.mass_mag, sim_settings.density_mag, sim_settings.planet_size
+                    except AttributeError: pass
+                except pickle.UnpicklingError: pass
+        except FileNotFoundError: pass
+        return 'AU', 'Deg', 'Kg', 'kg/UA', 1
 
 class VideoSettings:
     def __init__(self, fullscreen=False, current_resolution=(1280,720)):
