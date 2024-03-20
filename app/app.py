@@ -348,9 +348,11 @@ class App:
             pygame.quit()
             sys.exit()
         if event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
+            self.button_hovered = True
             sfx.play_sound('Menu_Sound_Hover', self.sfx_database)
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        if event.type == pygame_gui.UI_BUTTON_ON_UNHOVERED:
+        elif event.type == pygame_gui.UI_BUTTON_ON_UNHOVERED:
+            self.button_hovered = False
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         
         return True
@@ -417,6 +419,7 @@ class App:
     def simulation_(self, index):
         self.simulation = CustomPreset(self, prest_json=self.presets_dictionary[self.presets_file_names[index]])
         self.simulation.start(self)
+        self.button_hovered = None
         self.reset_ui_managers()
         self.paused = False
         running = True 

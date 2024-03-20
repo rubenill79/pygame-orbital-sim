@@ -17,12 +17,7 @@ class Simulation():
         # sim_rate: cuántos días pasan en la simulación por cada segundo en la vida real (el valor predeterminado es 1 día por segundo)
         # dx, dy: desplazamiento en px como resultado del movimiento de la cámara
         # offsetx, offsety: constantes al centro (0,0) en la ventana
-        self.width = app.current_resolution[0]
-        self.height = app.current_resolution[1]
-        self.dx = 0
-        self.dy = 0
-        self.offsetx = self.width / 2
-        self.offsety = self.height / 2
+        self.check_resolution(app)
 
         self.default_scale = scale
         self.scale = scale
@@ -43,6 +38,10 @@ class Simulation():
         self.current_time_update = 0
         self.show_labels = True
         self.hovered = False
+        self.right_click = False
+        self.left_click = False
+        self.focus_index = -1
+        self.focus = False
         self.paused = True
         self.ended = False
     """ 
@@ -53,6 +52,11 @@ class Simulation():
         relative_scale = self.scale / self.default_scale
         self.dx += dx / relative_scale
         self.dy += dy / relative_scale
+    def target(self, dx = 0, dy = 0):
+        # cambiar el desplazamiento para desplazarse/desplazarse por la pantalla
+        relative_scale = self.scale / self.default_scale
+        self.dx = dx / relative_scale
+        self.dy = dy / relative_scale
     def zoom(self, zoom):
         # ajustar el nivel de zoom y el desplazamiento del zoom
         self.scale *= zoom
@@ -183,11 +187,15 @@ class Simulation():
             if event.key == pygame.K_l: self.show_labels = not self.show_labels
         # zoom con el mouse
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1: self.mouse_start_pos = pygame.mouse.get_pos()
+            if event.button == 1:
+                self.left_click = True 
+                self.right_click = False
+                self.mouse_start_pos = pygame.mouse.get_pos()
+            elif event.button == 3:
+                self.left_click = False
+                self.right_click = True
             if event.button == 4: self.zoom(1.2)
             if event.button == 5: self.zoom(0.8)
-        #else:
-            #pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         # movimiento cámara
         if event.type == pygame.MOUSEMOTION:
             if pygame.mouse.get_pressed()[0]:
@@ -205,8 +213,10 @@ class Simulation():
         if keys[pygame.K_f]: self.toggle_fullscreen()
     
     def check_resolution(self, app):
-        self.width =app.current_resolution[0]
-        self.height = app.current_resolution[1]
+        self.width = app.current_resolution[0]
+        if not app.fullscreen and app.current_resolution == app.resolution_fullscreen:
+            self.height = app.current_resolution[1]*0.96
+        else: self.height = app.current_resolution[1]
         self.dx = 0
         self.dy = 0
         self.offsetx = self.width / 2
@@ -242,7 +252,9 @@ class Simulation():
             # limpiar pantalla
             app.screen.fill(self.orbital_system.bg)
             # dibujar planetas
+            entity_draw = []
             entity_labels = []
+            mouse_current_pos = pygame.mouse.get_pos()
             # reset del hover
             self.hovered = False
             for i, entity in enumerate(self.orbital_system.entities):
@@ -258,14 +270,29 @@ class Simulation():
                     if r == 0: r = 1
                     elif r <= 1 and self.scale > 300: r = 2
                     hitbox = 40
-                    if r > 50: hitbox = r * 1.2
-                    pygame.draw.circle(app.screen, entity.colour, (x, y), r)
+                    if r > 40: hitbox = r * 1.2
+                    entity_draw.append((entity.colour, (x, y), r,0))
        
                     # solo dibujar las etiquetas si hay hover del raton
-                    mouse_current_pos = pygame.mouse.get_pos()
-                    if not app.paused and not self.hovered and (mouse_current_pos[0] - hitbox < x and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y and y < mouse_current_pos[1] + hitbox):
-                        self.hovered = True
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    self.can_hover = ((mouse_current_pos[0] - hitbox < x 
+                        and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y 
+                        and y < mouse_current_pos[1] + hitbox))
+                    if not app.paused and ((not self.hovered and self.can_hover) or self.focus_index == i) :
+                        if self.can_hover: 
+                            self.hovered = True
+                            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                        if self.left_click and self.can_hover:
+                            self.left_click = False
+                            self.right_click = False
+                            self.focus = True
+                            self.focus_index = i
+                        if self.focus_index == i and self.focus:  
+                            # Centrar la cámara en el planeta
+                            new_offsetx = self.offsetx - x
+                            new_offsety = self.offsety - y
+                            self.scroll(dx=new_offsetx, dy=new_offsety)
+                
+                        entity_draw.append(((180, 180, 180), (x, y), r*1.2,1))
                         if i == 0:
                             if r < 2: r = 2
                             name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
@@ -281,8 +308,8 @@ class Simulation():
                             # Distancia de sol a entidad con el teorema de pitágoras
                             name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
                             position_label = self.font.render(F"{app.position_text}: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
-                            if entity.diameter == 6.69e-9: diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
-                            else: diameter_label = self.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
+                            if entity.diameter == 6.69e-9: diameter_label = self.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
+                            else: diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
                             mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
                             density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
                             e_label = self.font.render(F"{app.eccentricity_text}: {entity.e}", True, (180, 180, 180))
@@ -298,15 +325,23 @@ class Simulation():
                             entity_labels.append((e_label, (x + 3 + r, y + 3 + r + 110)))
                             entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
                             entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
-                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
-                        
-                        # circle underline
-                        pygame.draw.circle(app.screen, (180, 180, 180), (x, y), r*1.2,1)    
+                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))  
+
+            if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            if self.left_click or self.right_click:
+                self.left_click = False
+                self.right_click = False
+                self.focus = False
+                self.focus_index = -1
             
+            for entity in entity_draw:
+                colour, position, radius, width = entity
+                pygame.draw.circle(app.screen, colour, (position), radius, width)
             if self.show_labels:
                 for label in entity_labels:
                     text, position = label
                     app.screen.blit(text, position)
+                
             
             # fecha
             date_display = self.font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
