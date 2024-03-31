@@ -4,9 +4,9 @@ import webbrowser
 import pygame
 import pygame_gui
 import gui.component_builder as gui
-import sfx_player as sfx
-import image_loader as img
-import preset_loader as pst
+import misc.sfx_player as sfx
+import misc.image_loader as img
+import misc.preset_loader as pst
 from save_load import GeneralSettings, SimSettings, VideoSettings, AudioSettings
 from sim.presets import CustomPreset
 from gui.window_sim_controller import SimControllerWindow
