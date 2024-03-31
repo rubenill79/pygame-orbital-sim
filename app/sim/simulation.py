@@ -2,6 +2,7 @@ import os
 import ctypes
 import sys
 import pygame
+import pygame_gui
 import math
 import datetime
 from astroquery.jplhorizons import Horizons
@@ -10,7 +11,7 @@ from astropy.time import Time
 from .environment import OrbitalSystem
 
 class Simulation():
-    def __init__(self, app, sim_rate, scale = 1,  entity_scale = 1, start_date = None):    
+    def __init__(self, app, sim_rate, scale = 1,  entity_scale = 1):    
         # dimensions: (ancho, alto) de la ventana en píxeles
         # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado -1: calculado automáticamente por self.set_scale())
         # entity_scale: ampliación adicional de las entidades para fines de visibilidad
@@ -25,10 +26,7 @@ class Simulation():
         self.sim_rate = sim_rate
         self.sim_speed = datetime.datetime.today()
 
-        if start_date:
-            self.date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-        else:
-            self.date = datetime.datetime.today()
+        self.date = datetime.datetime.today()
 
         # inicializar el objeto del sistema orbital
         self.orbital_system = OrbitalSystem()
@@ -37,13 +35,20 @@ class Simulation():
         self.start_time_update = 0
         self.current_time_update = 0
         self.show_labels = True
-        self.hovered = False
-        self.right_click = False
-        self.left_click = False
-        self.focus_index = -1
-        self.focus = False
+        
         self.paused = True
         self.ended = False
+        
+        self.left_click = False
+        self.camera_center = False
+        self.hovered = False
+        self.overpass_mouse_hover = False
+        self.focus_camera_index = -1
+        self.focus_camera_last_index = -1
+        self.focus_1_index = -1
+        self.focus_2_index = -1
+        self.focus_1_last_index = -1
+        self.focus_2_last_index = -1
     """ 
     Acciones de la cámara
     """
@@ -52,11 +57,6 @@ class Simulation():
         relative_scale = self.scale / self.default_scale
         self.dx += dx / relative_scale
         self.dy += dy / relative_scale
-    def target(self, dx = 0, dy = 0):
-        # cambiar el desplazamiento para desplazarse/desplazarse por la pantalla
-        relative_scale = self.scale / self.default_scale
-        self.dx = dx / relative_scale
-        self.dy = dy / relative_scale
     def zoom(self, zoom):
         # ajustar el nivel de zoom y el desplazamiento del zoom
         self.scale *= zoom
@@ -65,50 +65,20 @@ class Simulation():
         self.scale = self.default_scale
         self.dx = 0
         self.dy = 0
-    def set_scale(self, max_a):
-        # calcular y establecer automáticamente la escala en función del semieje mayor más grande en la matriz de entidades;
-        # no hace nada si la escala se configura manualmente
-        if self.scale < 0:
-            new_scale = min(self.width, self.height) / (2 * max_a) 
-            self.scale = new_scale
-            self.default_scale = new_scale
     def change_sim_rate(self, speed_ratio):
         self.sim_rate *= speed_ratio
+    def check_resolution(self, app):
+        self.width = app.current_resolution[0]
+        if not app.fullscreen and app.current_resolution == app.resolution_fullscreen:
+            self.height = app.current_resolution[1]*0.96
+        else: self.height = app.current_resolution[1]
+        self.dx = 0
+        self.dy = 0
+        self.offsetx = self.width / 2
+        self.offsety = self.height / 2
     """
     Añadir las entidades a la simulación
     """
-    def add_custom_entity(
-        self,
-        position,
-        mass,
-        speed = 0,
-        angle = 0,
-        diameter = 1e-5,
-        e = 0,
-        a = None,
-        name = ''
-    ):  
-        # posición: tuple (x, y) que describe la distancia en AU desde el centro del sistema (0, 0)
-        # velocidad: magnitud de la velocidad inicial medida en AU/día
-        # ángulo: ángulo de la velocidad inicial dado en radianes
-        # masa: medida en kg
-        # diámetro: medido en AU
-        # (si corresponde) e: excentricidad de la órbita de la entidad en el rango de 0-1
-        # (si corresponde) a: semieje mayor de la órbita de la entidad medido en AU
-        # name: cadena de texto que se mostrará junto a la entidad cuando las etiquetas estén activadas
-        if not a:
-            x, y = position
-            a = math.hypot(x, y)
-
-        self.orbital_system.add_entity(
-            position = position, 
-            speed = speed, 
-            angle = angle, 
-            mass = mass, 
-            diameter = diameter,
-            e = e,
-            a = a
-        )
     def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 6.69e-9):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
         x, y, speed, angle, e, a, name = self.get_horizons_positioning(entity_id, observer_id)
@@ -159,9 +129,11 @@ class Simulation():
     """
     Funciones de la simulación
     """
-    def update(self, delta_t):
+    def update(self, app, delta_t):
+        if app.show_advanced_data:self.start_time_update = pygame.time.get_ticks() # Debug   
         self.orbital_system.update(delta_t)
         self.update_date(delta_t)
+        if app.show_advanced_data: self.current_time_update = pygame.time.get_ticks() # Debug   
     def update_date(self, delta_t):
         # calcular el número de días que han pasado en la simulación desde el último frame
         # sumarlo al display del dia y igualarlo a la variable de tiempo de simulación
@@ -172,88 +144,26 @@ class Simulation():
             # Año 9999 se acaba el date
             self.paused = True
             self.ended = True
-    def handle_event(self, event):
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        # teclas individuales
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and not self.ended: self.paused = not self.paused
-            if event.key == pygame.K_q: self.zoom(1.2)
-            if event.key == pygame.K_e: self.zoom(0.8)
-            if event.key == pygame.K_r: self.reset_zoom()
-            if event.key == pygame.K_PERIOD: self.change_sim_rate(1.2)
-            if event.key == pygame.K_COMMA: self.change_sim_rate(0.8)
-            if event.key == pygame.K_l: self.show_labels = not self.show_labels
-        # zoom con el mouse
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                self.left_click = True 
-                self.right_click = False
-                self.mouse_start_pos = pygame.mouse.get_pos()
-            elif event.button == 3:
-                self.left_click = False
-                self.right_click = True
-            if event.button == 4: self.zoom(1.2)
-            if event.button == 5: self.zoom(0.8)
-        # movimiento cámara
-        if event.type == pygame.MOUSEMOTION:
-            if pygame.mouse.get_pressed()[0]:
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                mouse_current_pos = pygame.mouse.get_pos()
-                mouse_offset_x = mouse_current_pos[0] - self.mouse_start_pos[0]
-                mouse_offset_y = mouse_current_pos[1] - self.mouse_start_pos[1]
-                self.scroll(dx = mouse_offset_x / 100, dy = mouse_offset_y / 100)
-        # movimiento cámara
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]: self.scroll(dx = 10)
-        if keys[pygame.K_d]: self.scroll(dx = -10)
-        if keys[pygame.K_w]: self.scroll(dy = 10)
-        if keys[pygame.K_s]: self.scroll(dy = -10)
-        if keys[pygame.K_f]: self.toggle_fullscreen()
-    
-    def check_resolution(self, app):
-        self.width = app.current_resolution[0]
-        if not app.fullscreen and app.current_resolution == app.resolution_fullscreen:
-            self.height = app.current_resolution[1]*0.96
-        else: self.height = app.current_resolution[1]
-        self.dx = 0
-        self.dy = 0
-        self.offsetx = self.width / 2
-        self.offsety = self.height / 2
     """
-    Método Main
+    Método Start
     """
-    def start(self, app):
-        """ 
-        Constructor 
-        """
+    def start(self):
         # pasar sim_rate a cada entidad en la simulación;
-        # también calcula el semieje mayor más grande y calcula la escala si corresponde
-        semimajor_axes = []
-        for entity in self.orbital_system.entities:
-            entity.sim_rate = self.sim_rate
-            semimajor_axes.append(entity.a)
-        self.set_scale(max(semimajor_axes))
+        for entity in self.orbital_system.entities: entity.sim_rate = self.sim_rate
 
         self.font = pygame.font.Font('data/fonts/m5x7.otf', 32)
-        
         self.mouse_start_pos = (self.width/2,self.height/2)
-        """
-        # Hacer que la ventana se ponga por encima de las demás
-        ctypes.windll.user32.SetForegroundWindow(pygame.display.get_wm_info()["window"])
-        """
-        """
-        Bucle pygame
-        """
-
+    """
+    Método Dibujar
+    """
     def draw(self, app, clock):
-            #start_time_draw = pygame.time.get_ticks() # Debug
+            if app.show_advanced_data: start_time_draw = pygame.time.get_ticks() # Debug
             # limpiar pantalla
             app.screen.fill(self.orbital_system.bg)
             # dibujar planetas
             entity_draw = []
             entity_labels = []
+            selected_entities = []
             mouse_current_pos = pygame.mouse.get_pos()
             # reset del hover
             self.hovered = False
@@ -277,22 +187,35 @@ class Simulation():
                     self.can_hover = ((mouse_current_pos[0] - hitbox < x 
                         and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y 
                         and y < mouse_current_pos[1] + hitbox))
-                    if not app.paused and ((not self.hovered and self.can_hover) or self.focus_index == i) :
-                        if self.can_hover: 
+                    if not app.paused and ((self.focus_camera_index == i or self.focus_1_index == i) or (self.overpass_mouse_hover and self.focus_2_index == i) or (not self.hovered and self.can_hover)):
+                        selected_entities.append(entity)
+                        if not self.hovered and self.can_hover: 
                             self.hovered = True
+                            self.overpass_mouse_hover = False
+                            self.focus_2_index = i
                             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                         if self.left_click and self.can_hover:
                             self.left_click = False
-                            self.right_click = False
                             self.focus = True
-                            self.focus_index = i
-                        if self.focus_index == i and self.focus:  
+                            self.focus_camera_index = i
+                            self.focus_1_index = i
+                        if self.focus_camera_index == i and self.focus:
                             # Centrar la cámara en el planeta
                             new_offsetx = self.offsetx - x
                             new_offsety = self.offsety - y
                             self.scroll(dx=new_offsetx, dy=new_offsety)
-                
+                        if self.focus_camera_index is not self.focus_camera_last_index:
+                            self.focus_camera_last_index = self.focus_camera_index
+                            app.play_menu_element[1].update_externaly_changed_entities_camera_center_objects(entity.name)
+                        if self.focus_1_index is not self.focus_1_last_index:
+                            self.focus_1_last_index = self.focus_1_index
+                            app.play_menu_element[1].update_externaly_changed_entities_focus_1_objects(entity.name)
+                        if self.focus_2_index is not self.focus_2_last_index:
+                            self.focus_2_last_index = self.focus_2_index
+                            app.play_menu_element[1].update_externaly_changed_entities_focus_2_objects(entity.name)
+                        
                         entity_draw.append(((180, 180, 180), (x, y), r*1.2,1))
+                        
                         if i == 0:
                             if r < 2: r = 2
                             name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
@@ -326,13 +249,39 @@ class Simulation():
                             entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
                             entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
                             entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))  
-
+                        
             if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-            if self.left_click or self.right_click:
+            if self.left_click:
                 self.left_click = False
-                self.right_click = False
-                self.focus = False
-                self.focus_index = -1
+                self.camera_center = False
+                self.hovered = False
+                self.overpass_mouse_hover = False
+                self.focus_camera_index = -1
+                self.focus_camera_last_index = -1
+                self.focus_1_index = -1
+                self.focus_2_index = -1
+                self.focus_1_last_index = -1
+                self.focus_2_last_index = -1
+            
+            if len(selected_entities) == 2:
+                x1, y1 = selected_entities[0].x, selected_entities[0].y
+                x2, y2 = selected_entities[1].x, selected_entities[1].y
+                
+                x1_screen = relative_scale * ((self.scale * x1) + self.dx) + self.offsetx
+                y1_screen = relative_scale * ((self.scale * -y1) + self.dy) + self.offsety
+                x2_screen = relative_scale * ((self.scale * x2) + self.dx) + self.offsetx
+                y2_screen = relative_scale * ((self.scale * -y2) + self.dy) + self.offsety
+                # Distancia euclidiana
+                distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+                angle = math.degrees(math.atan2((y2 - y1), (x2 - x1)))
+                if 90 <= angle <= 180: angle -= 180
+                elif -180 <= angle <= -90: angle += 180
+                
+                distance_text = self.font.render(f"{distance:.5f} UA", True, (180, 180, 180))
+                distance_text_rotated = pygame.transform.rotate(distance_text, angle)
+                app.screen.blit(distance_text_rotated, (((x1_screen + x2_screen) //2 - distance_text.get_width()/2), (y1_screen + y2_screen) //2 - distance_text.get_height()/2))
+                
+                pygame.draw.line(app.screen, (180, 180, 180), (x1_screen, y1_screen), (x2_screen, y2_screen), 1)
             
             for entity in entity_draw:
                 colour, position, radius, width = entity
@@ -362,15 +311,19 @@ class Simulation():
             if self.ended:
                 error_display = self.font.render(F"{app.sim_error_text}", 1, (0,102,204))
                 app.screen.blit(error_display, (self.width / 2 - error_display.get_width()/2, 120))
-            #current_time_draw = pygame.time.get_ticks() # Debug   
-            # tiempos de refresco
-            # draw_display = self.font.render(F"Tiempo de renderizado: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
-            # app.screen.blit(draw_display, (20, self.height - 80))
-            # update_display = self.font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
-            # app.screen.blit(update_display, (20, self.height - 100 ))
-            # fps
-            fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
-            app.screen.blit(fps_display, (20, self.height - 60 ))
+            if app.show_advanced_data: current_time_draw = pygame.time.get_ticks() # Debug   
             # ups
-            fps_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
-            app.screen.blit(fps_display, (20, self.height - 40 ))
+            if app.show_advanced_data and not app.paused:
+                physics_update_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
+                app.screen.blit(physics_update_display, (20, self.height - 60 ))
+                # tiempos de refresco
+                draw_display = self.font.render(F"Tiempo de renderizado: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
+                app.screen.blit(draw_display, (20, self.height - 80))
+                if not app.simulation.paused:
+                    update_display = self.font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
+                    app.screen.blit(update_display, (20, self.height - 100 ))
+            # fps
+            if app.show_FPS:
+                fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
+                app.screen.blit(fps_display, (20, self.height - 40 ))
+            
