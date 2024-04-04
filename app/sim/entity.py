@@ -26,7 +26,7 @@ Clase Entidad (Planetas o satélites)
 """
 class Entity():
        
-    def __init__(self, colour, position, diameter, mass, e = 0, a = 1, name = ''):
+    def __init__(self, colour, position, diameter, mass, e = 0, a = 1, arg_periapsis = 0, name = ''):
         # posición: tuple (x, y) que describe la distancia en UA desde el centro del sistema (0, 0)
         # diámetro: medido en UA
         # masa: medida en kg
@@ -43,6 +43,7 @@ class Entity():
         self.density = self.mass / (4/3 * math.pi * (self.diameter/2)**3)
         self.e = e
         self.a = a
+        self.arg_periapsis = math.radians(arg_periapsis)
         self.colour = colour
         self.name = name
 
@@ -70,6 +71,8 @@ class Entity():
         x, y = math.sin(self.angle) * self.speed * dpu, math.cos(self.angle) * self.speed * dpu
         self.x += x
         self.y -= y # resta debido al sistema de coordenadas de pygame porque 0,0 corresponde a la esquina superior en vez de la inferior
+        a = math.hypot(self.x, self.y)
+        if a > self.a: self.a = a
     def accelerate(self, acceleration):
         # Ajusta la magnitud de la aceleración para los días pasados por fotograma
         # Aplica una aceleración a la entidad en función de su velocidad actual y la nueva aceleración.

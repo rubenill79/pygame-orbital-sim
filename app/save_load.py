@@ -26,28 +26,29 @@ class GeneralSettings:
         return 'es', 100, True, False
 
 class SimSettings:
-    def __init__(self, distance_mag='AU', angle_mag='Deg', mass_mag='Kg', density_mag='kg/UA', planet_size=1):
+    def __init__(self, distance_mag='AU', angle_mag='Deg', mass_mag='Kg', density_mag='kg/UA', planet_size=1, enable_mouse_hover=True):
         self.distance_mag = distance_mag
         self.angle_mag = angle_mag
         self.mass_mag = mass_mag
         self.density_mag = density_mag
         self.planet_size = planet_size
+        self.enable_mouse_hover = enable_mouse_hover
         
     def save_sim_settings(self):
         with open('data/sim_settings.dat', 'wb') as file:
             pickle.dump(self, file)
         
     @classmethod
-    def load_sim_settings():
+    def load_sim_settings(cls):
         try:
             with open('data/sim_settings.dat', 'rb') as file:
                 try: 
                     sim_settings = pickle.load(file)
-                    try: return sim_settings.distance_mag, sim_settings.angle_mag, sim_settings.mass_mag, sim_settings.density_mag, sim_settings.planet_size
+                    try: return sim_settings.distance_mag, sim_settings.angle_mag, sim_settings.mass_mag, sim_settings.density_mag, sim_settings.planet_size, sim_settings.enable_mouse_hover
                     except AttributeError: pass
                 except pickle.UnpicklingError: pass
         except FileNotFoundError: pass
-        return 'AU', 'Deg', 'Kg', 'kg/UA', 1
+        return 'AU', 'Deg', 'Kg', 'kg/UA', 1, True
 
 class VideoSettings:
     def __init__(self, fullscreen=False, current_resolution=(1280,720)):

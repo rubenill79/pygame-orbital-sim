@@ -12,7 +12,6 @@ class Preset(Simulation):
             mass = self.entity_data[id_]['m']
             try:
                 colour = self.entity_data[id_]['c']
-
             except KeyError:
                 # No hace falta que todas tengan color ya que hay uno prediseñado para satélites y objetos diminutos
                 colour = (255, 255, 255)

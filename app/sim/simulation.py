@@ -1,8 +1,5 @@
-import os
-import ctypes
-import sys
 import pygame
-import pygame_gui
+import pygame.gfxdraw
 import math
 import datetime
 from astroquery.jplhorizons import Horizons
@@ -81,7 +78,7 @@ class Simulation():
     """
     def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 6.69e-9):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
-        x, y, speed, angle, e, a, name = self.get_horizons_positioning(entity_id, observer_id)
+        x, y, speed, angle, e, a, arg_periapsis, name = self.get_horizons_positioning(entity_id, observer_id)
 
         self.orbital_system.add_entity(
             colour,
@@ -92,6 +89,7 @@ class Simulation():
             diameter = diameter,
             e = e,
             a = a,
+            arg_periapsis = arg_periapsis,
             name = name,
         ) 
     def get_horizons_positioning(self, entity_id, observer_id):
@@ -109,6 +107,7 @@ class Simulation():
             # obtener el eje excéntrico (e) y semieje mayor (a) 
             e = elements['e'].data[0]
             a = elements['a'].data[0]
+            arg_periapsis = elements['w'].data[0]
             name = elements['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
 
             # obtener la posicion y velocidad de los componentes del JPL SSD 
@@ -120,12 +119,12 @@ class Simulation():
             # Específico de pygame: refleja horizontalmente el ángulo debido al eje y invertido
             angle = math.pi - ((2 * math.pi) - math.atan2(y, x))
 
-            return x, y, speed, angle, e, a, name
+            return x, y, speed, angle, e, a, arg_periapsis, name
         else:
             # caso especial para el cuerpo central del sistema (e.g. sun)
             # obj.elements() no funciona cuando entity_id y observer_id son iguales
             name = obj.vectors()['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
-            return 0, 0, 0, 0, 0, 0, name
+            return 0, 0, 0, 0, 0, 0, 0, name
     """
     Funciones de la simulación
     """
@@ -156,12 +155,31 @@ class Simulation():
     """
     Método Dibujar
     """
+    def calculate_orbit_points(self, a, e, periapsis_degrees, num_points=360):
+        points = []
+
+        for i in range(num_points):
+            theta = 2 * math.pi * i / num_points
+            r = a * (1 - e**2) / (1 + e * math.cos(theta + periapsis_degrees))
+            # Calculate rotated coordinates
+            x = r * math.cos(theta)
+            y = r * math.sin(theta)
+            
+            relative_scale = self.scale / self.default_scale
+            # Convert to screen coordinates
+            screen_x = relative_scale * ((self.scale * x) + self.dx) + self.offsetx
+            screen_y = relative_scale * ((self.scale * -y) + self.dy) + self.offsety
+            points.append((screen_x, screen_y))
+            
+        return points
+    
     def draw(self, app, clock):
             if app.show_advanced_data: start_time_draw = pygame.time.get_ticks() # Debug
             # limpiar pantalla
             app.screen.fill(self.orbital_system.bg)
             # dibujar planetas
             entity_draw = []
+            entity_orbit_draw = []
             entity_labels = []
             selected_entities = []
             mouse_current_pos = pygame.mouse.get_pos()
@@ -174,8 +192,8 @@ class Simulation():
                 x = relative_scale * ((self.scale * entity.x) + self.dx) + self.offsetx
                 y = relative_scale * ((self.scale * -entity.y) + self.dy) + self.offsety # reflected across y-axis to compensate for pygame's reversed axes
                 r = abs(int((entity.diameter * 150) * self.scale * self.entity_scale / 2 )) #*150 to pass it form UA to Km
-                # solo dibujar lo que se va a ver en pantalla
-                if x < self.width and y < self.height:
+                # solo dibujar lo que se va a ver en pantalla o si la camara esta centrada o es una de las entidades apuntadas o la central
+                if (x < self.width and y < self.height) or (self.focus_camera_index == i or self.focus_1_index == i or self.focus_2_index == i or i == 0):
                     # hacer que los planetas se vean mejor desde largas distancias
                     if r == 0: r = 1
                     elif r <= 1 and self.scale > 300: r = 2
@@ -187,9 +205,11 @@ class Simulation():
                     self.can_hover = ((mouse_current_pos[0] - hitbox < x 
                         and x < mouse_current_pos[0] + hitbox) and (mouse_current_pos[1] - hitbox < y 
                         and y < mouse_current_pos[1] + hitbox))
-                    if not app.paused and ((self.focus_camera_index == i or self.focus_1_index == i) or (self.overpass_mouse_hover and self.focus_2_index == i) or (not self.hovered and self.can_hover)):
-                        selected_entities.append(entity)
-                        if not self.hovered and self.can_hover: 
+                    if not app.paused and ((self.focus_camera_index == i or self.focus_1_index == i) or (self.overpass_mouse_hover and self.focus_2_index == i) or (not self.hovered and self.can_hover and app.enable_mouse_hover)):
+                        if self.focus_camera_index == i and (self.focus_1_index == i or self.focus_2_index == i): selected_entities.append(entity)
+                        elif self.focus_camera_index == i and (self.focus_1_index != i or self.focus_2_index != i): pass
+                        else: selected_entities.append(entity)
+                        if not self.hovered and self.can_hover and app.enable_mouse_hover: 
                             self.hovered = True
                             self.overpass_mouse_hover = False
                             self.focus_2_index = i
@@ -206,16 +226,24 @@ class Simulation():
                             self.scroll(dx=new_offsetx, dy=new_offsety)
                         if self.focus_camera_index is not self.focus_camera_last_index:
                             self.focus_camera_last_index = self.focus_camera_index
-                            app.play_menu_element[1].update_externaly_changed_entities_camera_center_objects(entity.name)
+                            app.play_menu_element[4].update_externaly_changed_entities_camera_center_objects(entity.name)
                         if self.focus_1_index is not self.focus_1_last_index:
                             self.focus_1_last_index = self.focus_1_index
-                            app.play_menu_element[1].update_externaly_changed_entities_focus_1_objects(entity.name)
+                            app.play_menu_element[4].update_externaly_changed_entities_focus_1_objects(entity.name)
                         if self.focus_2_index is not self.focus_2_last_index:
                             self.focus_2_last_index = self.focus_2_index
-                            app.play_menu_element[1].update_externaly_changed_entities_focus_2_objects(entity.name)
+                            app.play_menu_element[4].update_externaly_changed_entities_focus_2_objects(entity.name)
                         
                         entity_draw.append(((180, 180, 180), (x, y), r*1.2,1))
-                        
+                        if i != 0:
+                            entity_orbit_draw.append((self.calculate_orbit_points(entity.a, entity.e, entity.arg_periapsis)))
+                            
+                            """
+                            rx = relative_scale * ((self.scale * (entity.a * (1-entity.e))))
+                            ry = relative_scale * ((self.scale * (entity.a * math.sqrt(1 - entity.e**2))))
+                            print(rx,ry)
+                            entity_orbit_draw.append((rx, ry, (180, 180, 180)))
+                            """
                         if i == 0:
                             if r < 2: r = 2
                             name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
@@ -262,6 +290,9 @@ class Simulation():
                 self.focus_2_index = -1
                 self.focus_1_last_index = -1
                 self.focus_2_last_index = -1
+                app.play_menu_element[4].update_externaly_changed_entities_camera_center_objects("pygame-gui.None")
+                app.play_menu_element[4].update_externaly_changed_entities_focus_1_objects("pygame-gui.None")
+                app.play_menu_element[4].update_externaly_changed_entities_focus_2_objects("pygame-gui.None")
             
             if len(selected_entities) == 2:
                 x1, y1 = selected_entities[0].x, selected_entities[0].y
@@ -286,6 +317,17 @@ class Simulation():
             for entity in entity_draw:
                 colour, position, radius, width = entity
                 pygame.draw.circle(app.screen, colour, (position), radius, width)
+            for orbit_points in entity_orbit_draw:
+                pygame.draw.lines(app.screen, (180, 180, 180), True, orbit_points, 1)
+            """
+                rx, ry, colour = orbit
+                target_rect = pygame.Rect([0, 0, self.width, self.height])
+                shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+                pygame.gfxdraw.ellipse(shape_surf, self.center_x, self.center_y, int(rx), int(ry), colour)
+                rotated_surf = pygame.transform.rotate(shape_surf, 45)
+                app.screen.blit(rotated_surf, rotated_surf.get_rect(center = [self.center_x, self.center_y]))
+                pygame.gfxdraw.ellipse(app.screen, self.center_x, self.center_y, int(rx), int(ry), colour)
+            """
             if self.show_labels:
                 for label in entity_labels:
                     text, position = label
@@ -300,7 +342,7 @@ class Simulation():
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.per_second_text}" , 1, (255,255,255))                  
+                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_display, (20, 40))
                     sim_rate_hint_display = self.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
