@@ -26,16 +26,17 @@ Clase Entidad (Planetas o satélites)
 """
 class Entity():
        
-    def __init__(self, colour, position, diameter, mass, e = 0, a = 1, arg_periapsis = 0, name = ''):
+    def __init__(self, colour, position, diameter, mass, central_mass, e = 0, a = 1, arg_periapsis = 0, name = ''):
         # posición: tuple (x, y) que describe la distancia en UA desde el centro del sistema (0, 0)
         # diámetro: medido en UA
         # masa: medida en kg
         # velocidad: magnitud de la velocidad inicial medida en UA/día
         # ángulo: ángulo de la velocidad inicial dado en rad
-        # (si procede) e: excentricidad de la órbita, 0-1
-        # (si procede) a: semieje mayor medido en UA
+        # e: excentricidad de la órbita, 0-1
+        # a: semieje mayor medido en UA
+
         self.x, self.y = position
-        # convertir a float para optimizar la aplicación en las operaciones
+        # convertir a float para optimizar la velocidad en las operaciones
         self.x, self.y = float(self.x), float(self.y)
 
         self.diameter = diameter
@@ -49,10 +50,22 @@ class Entity():
 
         self.speed = 0
         self.angle = 0
-        
-        # G = [AU^3 * kg^-1 * d^-2]
+        # G = m³/kg/s²
+        self.G = 6.674e-11
+        # GForce = [AU^3 * kg^-1 * d^-2]
         self.GForce = G.to('AU3 / (kg d2)').value
+        try:
+            # Keplerian orbital period formula: T = 2π√(a^3 / (G * M))
+            self.orbital_period_seconds = 2 * math.pi * math.sqrt((a * 1.4961e11) ** 3 / (self.G * central_mass))
+            self.orbital_period_days = self.orbital_period_seconds / 86400
+            self.orbital_period_years = self.orbital_period_days / 365.25636
+        except ValueError:
+            self.orbital_period_seconds = 0
+            self.orbital_period_days = 0
+            self.orbital_period_years = 0
 
+        #self.orbital_points = []
+        
         # sim_rate: establecido externamente, describe el número de días que pasan en la simulación por cada segundo de la vida real (en tiempo real es 1.2e-5)
         # delta_t: el tiempo en ms entre fotogramas utilizado para mantener constante la tasa de simulación
         self.sim_rate = 1
@@ -71,8 +84,11 @@ class Entity():
         x, y = math.sin(self.angle) * self.speed * dpu, math.cos(self.angle) * self.speed * dpu
         self.x += x
         self.y -= y # resta debido al sistema de coordenadas de pygame porque 0,0 corresponde a la esquina superior en vez de la inferior
+        #self.orbital_points.append((self.x, self.y))
+        """
         a = math.hypot(self.x, self.y)
         if a > self.a: self.a = a
+        """
     def accelerate(self, acceleration):
         # Ajusta la magnitud de la aceleración para los días pasados por fotograma
         # Aplica una aceleración a la entidad en función de su velocidad actual y la nueva aceleración.

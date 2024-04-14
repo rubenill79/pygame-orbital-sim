@@ -236,6 +236,8 @@ class App:
             ("Sim_error", 0, 0),
             ("Physics_update", 0, 0),
             ("Small_diameter", 0, 0),
+            ("Orbital_period", 0, 0),
+            ("Earth_years", 0, 0),
         ]
         self.play_menu_element = []
         for i, (element_text, x_position, y_position) in enumerate(self.play_menu_elements):
@@ -261,6 +263,8 @@ class App:
             elif i == 23: self.sim_error_text = pst.get_localized_text(element_text, self.language)
             elif i == 24: self.physics_update_text = pst.get_localized_text(element_text, self.language)
             elif i == 25: self.small_diameter_text = pst.get_localized_text(element_text, self.language)
+            elif i == 26: self.orbital_period_text = pst.get_localized_text(element_text, self.language)
+            elif i == 27: self.earth_years_text = pst.get_localized_text(element_text, self.language)
             elif i == 0 or i == 2: self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 50, 50, element_text, self.play_menu_manager, '#menu_button'))
             else: self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 100, 50, element_text, self.play_menu_manager, '#menu_button'))
     def create_options_menu_gui(self):

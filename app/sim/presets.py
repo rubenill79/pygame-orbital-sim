@@ -10,6 +10,7 @@ class Preset(Simulation):
 
         for i, id_ in enumerate(self.entity_data.keys()):
             mass = self.entity_data[id_]['m']
+            if i == 0: self.orbital_system.central_mass = mass
             try:
                 colour = self.entity_data[id_]['c']
             except KeyError:

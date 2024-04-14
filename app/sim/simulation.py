@@ -1,5 +1,4 @@
 import pygame
-import pygame.gfxdraw
 import math
 import datetime
 from astroquery.jplhorizons import Horizons
@@ -22,7 +21,8 @@ class Simulation():
         self.entity_scale = entity_scale
         self.sim_rate = sim_rate
         self.sim_speed = datetime.datetime.today()
-
+        
+        self.start_date = datetime.datetime.today()
         self.date = datetime.datetime.today()
 
         # inicializar el objeto del sistema orbital
@@ -159,20 +159,22 @@ class Simulation():
         points = []
 
         for i in range(num_points):
-            theta = 2 * math.pi * i / num_points
-            r = a * (1 - e**2) / (1 + e * math.cos(theta + periapsis_degrees))
-            # Calculate rotated coordinates
-            x = r * math.cos(theta)
-            y = r * math.sin(theta)
-            
+            true_anomaly = math.radians(i)
+            x = a * (math.cos(true_anomaly) - e)
+            y = a * math.sqrt(1 - e**2) * math.sin(true_anomaly)
+
+            # Rotate the point by the argument of periapsis
+            x_rotated = x * math.cos(periapsis_degrees) - y * math.sin(periapsis_degrees)
+            y_rotated = x * math.sin(periapsis_degrees) + y * math.cos(periapsis_degrees)
+
             relative_scale = self.scale / self.default_scale
             # Convert to screen coordinates
-            screen_x = relative_scale * ((self.scale * x) + self.dx) + self.offsetx
-            screen_y = relative_scale * ((self.scale * -y) + self.dy) + self.offsety
+            screen_x = relative_scale * ((self.scale * -x_rotated) + self.dx) + self.offsetx
+            screen_y = relative_scale * ((self.scale * -y_rotated) + self.dy) + self.offsety
             points.append((screen_x, screen_y))
             
         return points
-    
+
     def draw(self, app, clock):
             if app.show_advanced_data: start_time_draw = pygame.time.get_ticks() # Debug
             # limpiar pantalla
@@ -236,6 +238,18 @@ class Simulation():
                         
                         entity_draw.append(((180, 180, 180), (x, y), r*1.2,1))
                         if i != 0:
+                            """
+                            if len(entity.orbital_points) > 2: 
+                                updated_points = []
+                                # we get all points during the movement and with it draw line 
+                                for point in entity.orbital_points: 
+                                    x, y = point 
+                                    x = relative_scale * ((self.scale * x) + self.dx) + self.offsetx
+                                    y = relative_scale * ((self.scale * -y) + self.dy) + self.offsety
+                                    updated_points.append((x, y))  
+                                # False means it isn't enclosed line
+                                pygame.draw.lines(app.screen, entity.colour, False, updated_points, 1)
+                                """
                             entity_orbit_draw.append((self.calculate_orbit_points(entity.a, entity.e, entity.arg_periapsis)))
                             
                             """
@@ -267,6 +281,7 @@ class Simulation():
                             a_label = self.font.render(F"{app.major_axis_text}: {entity.a} UA", True, (180, 180, 180))
                             speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA {app.per_day_text}", True, (180, 180, 180))
                             angle_label = self.font.render(F"{app.angle_text}: {entity.angle} rad", True, (180, 180, 180))
+                            if entity.orbital_period_days != 0: orbit_label = self.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -276,7 +291,8 @@ class Simulation():
                             entity_labels.append((e_label, (x + 3 + r, y + 3 + r + 110)))
                             entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
                             entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
-                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))  
+                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
+                            if entity.orbital_period_days != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 190)))
                         
             if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             if self.left_click:
