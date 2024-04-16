@@ -85,7 +85,6 @@ class SimControllerWindow(UIWindow):
 
         super().update(time_delta)
 
-        #self.pong_game.draw(self.game_surface_element.image)
         
     def update_externaly_changed_entities_camera_center_objects(self, option):
         self.entities_camera_center_objects.kill()

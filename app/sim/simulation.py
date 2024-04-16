@@ -78,7 +78,7 @@ class Simulation():
     """
     def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 6.69e-9):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
-        x, y, speed, angle, e, a, arg_periapsis, name = self.get_horizons_positioning(entity_id, observer_id)
+        x, y, speed, angle, e, a, p, arg_periapsis, name = self.get_horizons_positioning(entity_id, observer_id)
 
         self.orbital_system.add_entity(
             colour,
@@ -89,6 +89,7 @@ class Simulation():
             diameter = diameter,
             e = e,
             a = a,
+            p = p,
             arg_periapsis = arg_periapsis,
             name = name,
         ) 
@@ -97,7 +98,6 @@ class Simulation():
                 id = entity_id, 
                 location = '@{}'.format(observer_id),
                 epochs = Time(self.date).jd,
-                id_type='id'
             )
         
         if not entity_id == observer_id:
@@ -107,6 +107,7 @@ class Simulation():
             # obtener el eje excéntrico (e) y semieje mayor (a) 
             e = elements['e'].data[0]
             a = elements['a'].data[0]
+            p = elements['P'].data[0]
             arg_periapsis = elements['w'].data[0]
             name = elements['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
 
@@ -119,12 +120,12 @@ class Simulation():
             # Específico de pygame: refleja horizontalmente el ángulo debido al eje y invertido
             angle = math.pi - ((2 * math.pi) - math.atan2(y, x))
 
-            return x, y, speed, angle, e, a, arg_periapsis, name
+            return x, y, speed, angle, e, a, p ,arg_periapsis, name
         else:
             # caso especial para el cuerpo central del sistema (e.g. sun)
             # obj.elements() no funciona cuando entity_id y observer_id son iguales
             name = obj.vectors()['targetname'].data[0].replace('Barycenter ', '').replace('(','').replace(')','')
-            return 0, 0, 0, 0, 0, 0, 0, name
+            return 0, 0, 0, 0, 0, 0, 0, 0, name
     """
     Funciones de la simulación
     """
@@ -156,24 +157,25 @@ class Simulation():
     Método Dibujar
     """
     def calculate_orbit_points(self, a, e, periapsis_degrees, num_points=360):
-        points = []
+        try:
+            points = []
+            for i in range(num_points):
+                true_anomaly = math.radians(i)
+                x = a * (math.cos(true_anomaly) - e)
+                y = a * math.sqrt(1 - e**2) * math.sin(true_anomaly)
 
-        for i in range(num_points):
-            true_anomaly = math.radians(i)
-            x = a * (math.cos(true_anomaly) - e)
-            y = a * math.sqrt(1 - e**2) * math.sin(true_anomaly)
+                # Rotate the point by the argument of periapsis
+                x_rotated = x * math.cos(periapsis_degrees) - y * math.sin(periapsis_degrees)
+                y_rotated = x * math.sin(periapsis_degrees) + y * math.cos(periapsis_degrees)
 
-            # Rotate the point by the argument of periapsis
-            x_rotated = x * math.cos(periapsis_degrees) - y * math.sin(periapsis_degrees)
-            y_rotated = x * math.sin(periapsis_degrees) + y * math.cos(periapsis_degrees)
-
-            relative_scale = self.scale / self.default_scale
-            # Convert to screen coordinates
-            screen_x = relative_scale * ((self.scale * -x_rotated) + self.dx) + self.offsetx
-            screen_y = relative_scale * ((self.scale * -y_rotated) + self.dy) + self.offsety
-            points.append((screen_x, screen_y))
-            
-        return points
+                relative_scale = self.scale / self.default_scale
+                # Convert to screen coordinates
+                screen_x = relative_scale * ((self.scale * -x_rotated) + self.dx) + self.offsetx
+                screen_y = relative_scale * ((self.scale * -y_rotated) + self.dy) + self.offsety
+                points.append((screen_x, screen_y))
+            return points
+        except ValueError:
+            return []
 
     def draw(self, app, clock):
             if app.show_advanced_data: start_time_draw = pygame.time.get_ticks() # Debug
@@ -228,13 +230,13 @@ class Simulation():
                             self.scroll(dx=new_offsetx, dy=new_offsety)
                         if self.focus_camera_index is not self.focus_camera_last_index:
                             self.focus_camera_last_index = self.focus_camera_index
-                            app.play_menu_element[4].update_externaly_changed_entities_camera_center_objects(entity.name)
+                            app.play_menu_element[5].update_externaly_changed_entities_camera_center_objects(entity.name)
                         if self.focus_1_index is not self.focus_1_last_index:
                             self.focus_1_last_index = self.focus_1_index
-                            app.play_menu_element[4].update_externaly_changed_entities_focus_1_objects(entity.name)
+                            app.play_menu_element[5].update_externaly_changed_entities_focus_1_objects(entity.name)
                         if self.focus_2_index is not self.focus_2_last_index:
                             self.focus_2_last_index = self.focus_2_index
-                            app.play_menu_element[4].update_externaly_changed_entities_focus_2_objects(entity.name)
+                            app.play_menu_element[5].update_externaly_changed_entities_focus_2_objects(entity.name)
                         
                         entity_draw.append(((180, 180, 180), (x, y), r*1.2,1))
                         if i != 0:
@@ -281,7 +283,7 @@ class Simulation():
                             a_label = self.font.render(F"{app.major_axis_text}: {entity.a} UA", True, (180, 180, 180))
                             speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA {app.per_day_text}", True, (180, 180, 180))
                             angle_label = self.font.render(F"{app.angle_text}: {entity.angle} rad", True, (180, 180, 180))
-                            if entity.orbital_period_days != 0: orbit_label = self.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
+                            if entity.orbital_period_years != 0: orbit_label = self.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                             entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -292,7 +294,7 @@ class Simulation():
                             entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
                             entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
                             entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
-                            if entity.orbital_period_days != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 190)))
+                            if entity.orbital_period_years != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 190)))
                         
             if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             if self.left_click:
@@ -306,9 +308,9 @@ class Simulation():
                 self.focus_2_index = -1
                 self.focus_1_last_index = -1
                 self.focus_2_last_index = -1
-                app.play_menu_element[4].update_externaly_changed_entities_camera_center_objects("pygame-gui.None")
-                app.play_menu_element[4].update_externaly_changed_entities_focus_1_objects("pygame-gui.None")
-                app.play_menu_element[4].update_externaly_changed_entities_focus_2_objects("pygame-gui.None")
+                app.play_menu_element[5].update_externaly_changed_entities_camera_center_objects("pygame-gui.None")
+                app.play_menu_element[5].update_externaly_changed_entities_focus_1_objects("pygame-gui.None")
+                app.play_menu_element[5].update_externaly_changed_entities_focus_2_objects("pygame-gui.None")
             
             if len(selected_entities) == 2:
                 x1, y1 = selected_entities[0].x, selected_entities[0].y
@@ -334,7 +336,10 @@ class Simulation():
                 colour, position, radius, width = entity
                 pygame.draw.circle(app.screen, colour, (position), radius, width)
             for orbit_points in entity_orbit_draw:
-                pygame.draw.lines(app.screen, (180, 180, 180), True, orbit_points, 1)
+                try:
+                    pygame.draw.lines(app.screen, (180, 180, 180), True, orbit_points, 1)
+                except ValueError:
+                    pass
             """
                 rx, ry, colour = orbit
                 target_rect = pygame.Rect([0, 0, self.width, self.height])

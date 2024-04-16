@@ -1,11 +1,14 @@
 import pygame
+from .matplotlib_controller import *
+
 import pygame_gui
 
-from pygame_gui.elements.ui_window import UIWindow
+from pygame_matplotlib.gui_window import UIPlotWindow
 
-class PlotWindow(UIWindow):
+class PlotWindow(UIPlotWindow):
     def __init__(self, position: tuple, size: tuple, ui_manager, title, simulation):
         super().__init__(pygame.Rect(position, size), ui_manager,
+                         figuresurface=fig,
                          window_display_title=title,
                          object_id='#plot_controller_window')
         
@@ -18,4 +21,3 @@ class PlotWindow(UIWindow):
             #self.pong_game.update(time_delta)
 
         super().update(time_delta)
-        #self.pong_game.draw(self.game_surface_element.image)

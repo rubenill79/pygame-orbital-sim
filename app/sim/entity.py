@@ -26,7 +26,7 @@ Clase Entidad (Planetas o satélites)
 """
 class Entity():
        
-    def __init__(self, colour, position, diameter, mass, central_mass, e = 0, a = 1, arg_periapsis = 0, name = ''):
+    def __init__(self, colour, position, diameter, mass, central_mass, e = 0, a = 1, p = 0, arg_periapsis = 0, name = ''):
         # posición: tuple (x, y) que describe la distancia en UA desde el centro del sistema (0, 0)
         # diámetro: medido en UA
         # masa: medida en kg
@@ -44,6 +44,15 @@ class Entity():
         self.density = self.mass / (4/3 * math.pi * (self.diameter/2)**3)
         self.e = e
         self.a = a
+        self.orbital_period_days = p
+        try:
+            self.orbital_period_years = self.orbital_period_days / 365.256
+        except ValueError:
+            self.orbital_period_years = 0
+        try:
+            self.b = a * math.sqrt(1 - e**2)
+        except ValueError:
+            self.b = 0
         self.arg_periapsis = math.radians(arg_periapsis)
         self.colour = colour
         self.name = name
@@ -54,6 +63,7 @@ class Entity():
         self.G = 6.674e-11
         # GForce = [AU^3 * kg^-1 * d^-2]
         self.GForce = G.to('AU3 / (kg d2)').value
+        """
         try:
             # Keplerian orbital period formula: T = 2π√(a^3 / (G * M))
             self.orbital_period_seconds = 2 * math.pi * math.sqrt((a * 1.4961e11) ** 3 / (self.G * central_mass))
@@ -63,7 +73,7 @@ class Entity():
             self.orbital_period_seconds = 0
             self.orbital_period_days = 0
             self.orbital_period_years = 0
-
+        """
         #self.orbital_points = []
         
         # sim_rate: establecido externamente, describe el número de días que pasan en la simulación por cada segundo de la vida real (en tiempo real es 1.2e-5)
@@ -105,7 +115,7 @@ class Entity():
 
         # Calcular la fuerza de atracción debida a la gravedad utilizando la ley de gravitación universal de Newton:
         # F = G * m1 * m2 / r^2
-        force = self.GForce * self.mass * other.mass / (distance ** 2)
+        force = (self.GForce * self.mass * other.mass) / (distance ** 2)
      
         # Acelerar ambos cuerpos uno hacia el otro mediante el vector de aceleración a = F/m, reordenado a partir de la segunda ley de Newton
         self.accelerate((force / self.mass, theta - (math.pi / 2)))
