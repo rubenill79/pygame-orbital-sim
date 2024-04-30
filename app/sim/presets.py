@@ -1,6 +1,7 @@
 from .simulation import Simulation
 import threading
 import time
+from requests.exceptions import HTTPError
 """
 Clase padre para los sistemas prediseñados / Hereda de Simulation
 """
@@ -9,23 +10,39 @@ class Preset(Simulation):
         super().__init__(app, sim_rate)
             
     def add_entity_thread(self, i, entity_data, observer_id, id_, mass, colour, diameter=None):
-        # Método que accede a la API Horizons y descarga los datos
-        if diameter is not None:
-            self.add_horizons_entity(
-                colour=colour,
-                entity_id=id_,
-                observer_id=observer_id,
-                mass=mass,
-                diameter=diameter
-            )
-        else:
-            self.add_horizons_entity(
-                colour=colour,
-                entity_id=id_,
-                observer_id=observer_id,
-                mass=mass
-            )
-        print('Entidad {} de {} añadida con éxito'.format(i + 1, len(entity_data)))
+        # Número máximo de reintentos
+        MAX_RETRIES = 5
+        success = False
+        retries = 0
+
+        while not success and retries < MAX_RETRIES:
+            try:
+                if diameter is not None:
+                    self.add_horizons_entity(
+                        colour=colour,
+                        entity_id=id_,
+                        observer_id=observer_id,
+                        mass=mass,
+                        diameter=diameter
+                    )
+                else:
+                    self.add_horizons_entity(
+                        colour=colour,
+                        entity_id=id_,
+                        observer_id=observer_id,
+                        mass=mass
+                    )
+                # Si no hay error, marca como exitoso
+                success = True
+                print('Entidad {} de {} añadida con éxito'.format(i + 1, len(entity_data)))
+
+            except HTTPError:
+                retries += 1
+                print(f"Error HTTP encontrado en entidad: {i + 1}. Intento {retries} de {MAX_RETRIES}")
+                time.sleep(1)  # Esperar 1 segundo antes de reintentar
+
+        if not success:
+            print("Error: no se pudo añadir la entidad tras varios intentos.")
 
     def add_entities(self, observer_id):
         threads = []

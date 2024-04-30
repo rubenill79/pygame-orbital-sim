@@ -218,9 +218,9 @@ class App:
             ("⏮", self.screen.get_width() / 2 - 125, 20),
             ("⏵", self.screen.get_width() / 2 - 25, 20),
             ("⏭", self.screen.get_width() / 2 + 25, 20),
-            ("pygame-gui.Sim_controller_window", 10, 80),
-            ("pygame-gui.Plot_controller_window", self.screen.get_width() - 5 - self.screen.get_width() / 4, 60),
-            ("pygame-gui.Plot_window", self.screen.get_width() - 5 - self.screen.get_width() / 4, 180 + self.screen.get_height() / 4),
+            ("pygame-gui.Sim_controller_window", 20, 100),
+            ("pygame-gui.Plot_controller_window", self.screen.get_width() - 5 - self.screen.get_width() / 4, 70),
+            ("pygame-gui.Plot_window", self.screen.get_width() - 5 - self.screen.get_width() / 4, self.screen.get_height() / 2),
             ("Sim_paused", 0, 0),
             ("Diameter", 0, 0),
             ("Mass", 0, 0),
@@ -242,12 +242,13 @@ class App:
             ("Small_diameter", 0, 0),
             ("Orbital_period", 0, 0),
             ("Earth_years", 0, 0),
+            ("Arg_periapsis", 0, 0)
         ]
         self.play_menu_element = []
         for i, (element_text, x_position, y_position) in enumerate(self.play_menu_elements):
-            if i == 5: self.play_menu_element.append(SimControllerWindow((x_position, y_position), (self.screen.get_width() / 4, self.screen.get_height() - 200), self.play_menu_manager, element_text, self.simulation))
-            elif i == 6: self.play_menu_element.append(PlotControllerWindow((x_position, y_position), (self.screen.get_width() / 4, self.screen.get_height() / 2), self.play_menu_manager, element_text, self.simulation))
-            elif i == 7: self.play_menu_element.append(PlotWindow((x_position, y_position), (self.screen.get_width() / 4, self.screen.get_height() / 2), self.play_menu_manager, element_text, self.simulation))
+            if i == 5: self.play_menu_element.append(SimControllerWindow((x_position, y_position), (self.screen.get_width() / 4, self.screen.get_height() - 240), self.play_menu_manager, element_text, self.simulation))
+            elif i == 6: self.play_menu_element.append(PlotControllerWindow((x_position, y_position), (self.screen.get_width() / 4 - 17, self.screen.get_height() / 2), self.play_menu_manager, element_text, self.simulation))
+            elif i == 7: self.play_menu_element.append(PlotWindow((x_position, y_position), (self.screen.get_width() / 4 - 17, self.screen.get_height() / 2), self.play_menu_manager, element_text, self.simulation))
             elif i == 8: self.simulation_paused_text = pst.get_localized_text(element_text, self.language)
             elif i == 9: self.diameter_text = pst.get_localized_text(element_text, self.language)
             elif i == 10: self.mass_text = pst.get_localized_text(element_text, self.language)
@@ -269,6 +270,7 @@ class App:
             elif i == 26: self.small_diameter_text = pst.get_localized_text(element_text, self.language)
             elif i == 27: self.orbital_period_text = pst.get_localized_text(element_text, self.language)
             elif i == 28: self.earth_years_text = pst.get_localized_text(element_text, self.language)
+            elif i == 29: self.arg_periapsis_text = pst.get_localized_text(element_text, self.language)
             elif i == 0 or i == 1 or i == 3: self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 50, 50, element_text, self.play_menu_manager, '#menu_button'))
             else: self.play_menu_element.append(gui.create_button_with_id(x_position, y_position, 100, 50, element_text, self.play_menu_manager, '#menu_button'))
     def create_options_menu_gui(self):
@@ -393,9 +395,10 @@ class App:
             sys.exit()
     def handle_simulation_mouse_events(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1: self.simulation.left_click = True
             if event.button == 3: self.simulation.mouse_start_pos = pygame.mouse.get_pos()
-            elif event.button == 4: self.simulation.zoom(1.2)
-            elif event.button == 5: self.simulation.zoom(0.8)
+            elif event.button == 4: self.simulation.zoom(1.0526)
+            elif event.button == 5: self.simulation.zoom(0.95)
         elif event.type == pygame.MOUSEMOTION:
             if event.buttons[0]: self.simulation.left_click = True
             if event.buttons[2]:
@@ -412,8 +415,8 @@ class App:
             elif event.key == pygame.K_SPACE and not self.simulation.ended: 
                 self.simulation.paused = not self.simulation.paused
                 self.play_menu_element[3].set_text(self.check_play_pause_button(self.simulation.paused))
-            elif event.key == pygame.K_q: self.simulation.zoom(1.2)
-            elif event.key == pygame.K_e: self.simulation.zoom(0.8)
+            elif event.key == pygame.K_q: self.simulation.zoom(1.0526)
+            elif event.key == pygame.K_e: self.simulation.zoom(0.95)
             elif event.key == pygame.K_r: self.simulation.reset_zoom()
             elif event.key == pygame.K_PERIOD: self.simulation.change_sim_rate(1.2)
             elif event.key == pygame.K_COMMA: self.simulation.change_sim_rate(0.8)
@@ -525,7 +528,7 @@ class App:
                     elif event.ui_element == self.selection_menu_elements_list[5]:
                         sfx.play_sound('Menu_Sound_Load_Savefile', self.sfx_database)
                         for i, preset_name in enumerate(self.presets_list):
-                            if self.selection_menu_elements_list[1].selected_option == preset_name:
+                            if self.selection_menu_elements_list[1].selected_option[0] == preset_name:
                                 self.simulation_(i)
                                 running = False
                 elif event.type == pygame_gui.UI_TEXT_BOX_LINK_CLICKED: webbrowser.open_new_tab(event.link_target)

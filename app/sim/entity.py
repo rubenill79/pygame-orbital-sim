@@ -34,16 +34,15 @@ class Entity():
         # ángulo: ángulo de la velocidad inicial dado en rad
         # e: excentricidad de la órbita, 0-1
         # a: semieje mayor medido en UA
-
         self.x, self.y = position
         # convertir a float para optimizar la velocidad en las operaciones
         self.x, self.y = float(self.x), float(self.y)
-
         self.diameter = diameter
         self.mass = mass
         self.density = self.mass / (4/3 * math.pi * (self.diameter/2)**3)
         self.e = e
         self.a = a
+        if math.hypot(self.x, self.y) > self.a: self.a = math.hypot(self.x, self.y)
         self.orbital_period_days = p
         try:
             self.orbital_period_years = self.orbital_period_days / 365.256
@@ -52,6 +51,8 @@ class Entity():
         try:
             self.b = a * math.sqrt(1 - e**2)
         except ValueError:
+            self.orbital_period_years = 0
+            self.orbital_period_days = 0
             self.b = 0
         self.arg_periapsis = math.radians(arg_periapsis)
         self.colour = colour
@@ -95,10 +96,7 @@ class Entity():
         self.x += x
         self.y -= y # resta debido al sistema de coordenadas de pygame porque 0,0 corresponde a la esquina superior en vez de la inferior
         #self.orbital_points.append((self.x, self.y))
-        """
-        a = math.hypot(self.x, self.y)
-        if a > self.a: self.a = a
-        """
+        if math.hypot(self.x, self.y) > self.a: self.a = math.hypot(self.x, self.y)
     def accelerate(self, acceleration):
         # Ajusta la magnitud de la aceleración para los días pasados por fotograma
         # Aplica una aceleración a la entidad en función de su velocidad actual y la nueva aceleración.

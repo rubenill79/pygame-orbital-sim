@@ -19,6 +19,7 @@ class Simulation():
         self.default_scale = scale
         self.scale = scale
         self.entity_scale = entity_scale
+        self.scaled_distance = self.calculate_ua(self.scale)
         self.sim_rate = sim_rate
         self.sim_speed = datetime.datetime.today()
         
@@ -57,6 +58,7 @@ class Simulation():
     def zoom(self, zoom):
         # ajustar el nivel de zoom y el desplazamiento del zoom
         self.scale *= zoom
+        self.scaled_distance = self.calculate_ua(self.scale)
     def reset_zoom(self):
         # reset de todas las variables de la cámara a por defecto
         self.scale = self.default_scale
@@ -151,31 +153,70 @@ class Simulation():
         # pasar sim_rate a cada entidad en la simulación;
         for entity in self.orbital_system.entities: entity.sim_rate = self.sim_rate
 
-        self.font = pygame.font.Font('data/fonts/m5x7.otf', 32)
+        self.font = pygame.font.Font('data/fonts/m5x7.otf', 24)
         self.mouse_start_pos = (self.width/2,self.height/2)
     """
     Método Dibujar
     """
-    def calculate_orbit_points(self, a, e, periapsis_degrees, num_points=360):
+    def calculate_orbit_points(self, a, e, periapsis_radians, num_points=360):
+        
+        relative_scale = self.scale / self.default_scale    
+        
+        sin_periapsis = math.sin(periapsis_radians)
+        cos_periapsis = math.cos(periapsis_radians)
+        
         try:
             points = []
             for i in range(num_points):
+                
                 true_anomaly = math.radians(i)
                 x = a * (math.cos(true_anomaly) - e)
                 y = a * math.sqrt(1 - e**2) * math.sin(true_anomaly)
-
-                # Rotate the point by the argument of periapsis
-                x_rotated = x * math.cos(periapsis_degrees) - y * math.sin(periapsis_degrees)
-                y_rotated = x * math.sin(periapsis_degrees) + y * math.cos(periapsis_degrees)
-
-                relative_scale = self.scale / self.default_scale
+                
+                x_rotated = x * cos_periapsis - y * sin_periapsis
+                y_rotated = x * sin_periapsis + y * cos_periapsis
+                
+                # Apply rotation to the coordinates
+                if 0 <= periapsis_radians < math.pi / 4:  # First quadrant 0≤θ<0.785 radians. ok
+                    x_rotated = -x_rotated
+                    y_rotated = -y_rotated
+                elif math.pi / 4 <= periapsis_radians < math.pi / 2:  # Second quadrant 0.785≤θ<1.57 radians. ok
+                    x_rotated = -x_rotated
+                    y_rotated = -y_rotated
+                elif math.pi / 2 <= periapsis_radians < 3 * math.pi / 4:  # Third quadrant 1.57≤θ<2.355 radians. ok
+                    x_rotated = x_rotated
+                    y_rotated = y_rotated
+                elif 3 * math.pi / 4 <= periapsis_radians < math.pi:  # Fourth quadrant 2.355≤θ<3.14 radians. ok
+                    x_rotated = x_rotated
+                    y_rotated = -y_rotated
+                elif math.pi <= periapsis_radians < 5 * math.pi / 4:  # Fifth quadrant 3.14≤θ<3.93 radians. ok
+                    x_rotated = -x_rotated
+                    y_rotated = -y_rotated
+                elif 5 * math.pi / 4 <= periapsis_radians < 3 * math.pi / 2:  # Sixth quadrant 3.93≤θ<4.71 radians. ok
+                    x_rotated = -x_rotated
+                    y_rotated = y_rotated
+                elif 3 * math.pi / 2 <= periapsis_radians < 7 * math.pi / 4:  # Seventh quadrant 4.71≤θ<5.495 radians. ok
+                    x_rotated = -x_rotated
+                    y_rotated = -y_rotated
+                else:  # Eighth quadrant 5.495≤θ<6.28 radians. ok
+                    x_rotated = x_rotated
+                    y_rotated = y_rotated
+                    
                 # Convert to screen coordinates
-                screen_x = relative_scale * ((self.scale * -x_rotated) + self.dx) + self.offsetx
-                screen_y = relative_scale * ((self.scale * -y_rotated) + self.dy) + self.offsety
+                screen_x = relative_scale * ((self.scale * x_rotated) + self.dx) + self.offsetx
+                screen_y = relative_scale * ((self.scale * y_rotated) + self.dy) + self.offsety
                 points.append((screen_x, screen_y))
+                
             return points
         except ValueError:
             return []
+    def calculate_ua(self, scale):
+        if scale <= 20:
+            # Proporcionalidad inversa para escalas menores a 20
+            return 400 / (scale**2)  # Ajuste para distribuir valores
+        else:
+            # Proporcionalidad inversa para escalas mayores a 20
+            return 1 / (scale - 19)
 
     def draw(self, app, clock):
             if app.show_advanced_data: start_time_draw = pygame.time.get_ticks() # Debug
@@ -263,26 +304,29 @@ class Simulation():
                         if i == 0:
                             if r < 2: r = 2
                             name_label = self.font.render(F"{entity.name}", True, (180, 180, 180))
+                            position_label = self.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
                             diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
                             mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
                             density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
-                            entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 30)))
-                            entity_labels.append((mass_label, (x + 3 + r, y + 3 + r + 50)))
-                            entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 70)))
+                            entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
+                            entity_labels.append((diameter_label, (x + 3 + r, y + 3 + r + 50)))
+                            entity_labels.append((mass_label, (x + 3 + r, y + 3 + r + 70)))
+                            entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 90)))
                         else:
                             # Distancia de sol a entidad con el teorema de pitágoras
                             name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (180, 180, 180))
-                            position_label = self.font.render(F"{app.position_text}: ({entity.x},{entity.y}) UA", True, (180, 180, 180))
+                            position_label = self.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
                             if entity.diameter == 6.69e-9: diameter_label = self.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
                             else: diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
                             mass_label = self.font.render(F"{app.mass_text}: {entity.mass} kg", True, (180, 180, 180))
                             density_label = self.font.render(F"{app.density_text}: {entity.density} kg/UA", True, (180, 180, 180))
-                            e_label = self.font.render(F"{app.eccentricity_text}: {entity.e}", True, (180, 180, 180))
-                            a_label = self.font.render(F"{app.major_axis_text}: {entity.a} UA", True, (180, 180, 180))
-                            speed_label = self.font.render(F"{app.velocity_text}: {entity.speed} UA {app.per_day_text}", True, (180, 180, 180))
-                            angle_label = self.font.render(F"{app.angle_text}: {entity.angle} rad", True, (180, 180, 180))
+                            e_label = self.font.render(F"{app.eccentricity_text}: {entity.e:.5f}", True, (180, 180, 180))
+                            a_label = self.font.render(F"{app.major_axis_text}: {entity.a:.5f} UA", True, (180, 180, 180))
+                            arg_periapsis_label = self.font.render(F"{app.arg_periapsis_text}: {entity.arg_periapsis:.5f} rad", True, (180, 180, 180))
+                            speed_label = self.font.render(F"{app.velocity_text}: {entity.speed:.5f} UA {app.per_day_text}", True, (180, 180, 180))
+                            angle_label = self.font.render(F"{app.angle_text}: {entity.angle:.5f} rad", True, (180, 180, 180))
                             if entity.orbital_period_years != 0: orbit_label = self.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
                             # append data to array
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
@@ -292,9 +336,10 @@ class Simulation():
                             entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 90)))
                             entity_labels.append((e_label, (x + 3 + r, y + 3 + r + 110)))
                             entity_labels.append((a_label, (x + 3 + r, y + 3 + r + 130)))
-                            entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 150)))
-                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 170)))
-                            if entity.orbital_period_years != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 190)))
+                            entity_labels.append((arg_periapsis_label, (x + 3 + r, y + 3 + r + 150)))
+                            entity_labels.append((speed_label, (x + 3 + r, y + 3 + r + 170)))
+                            entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 190)))
+                            if entity.orbital_period_years != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 210)))
                         
             if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             if self.left_click:
@@ -352,8 +397,7 @@ class Simulation():
             if self.show_labels:
                 for label in entity_labels:
                     text, position = label
-                    app.screen.blit(text, position)
-                
+                    app.screen.blit(text, position)       
             
             # fecha
             date_display = self.font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
@@ -363,10 +407,11 @@ class Simulation():
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
+                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_display, (20, 40))
                     sim_rate_hint_display = self.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
+                    
                 except (AttributeError): pass      
             else:
                 paused_display = self.font.render(app.simulation_paused_text, 1, (0,102,204))
@@ -377,6 +422,18 @@ class Simulation():
             if app.show_advanced_data: current_time_draw = pygame.time.get_ticks() # Debug   
             # ups
             if app.show_advanced_data and not app.paused:
+                # Displaying map scales
+                if self.scaled_distance < 1: 
+                    scaled_distance = self.scaled_distance*149597870.7
+                    map_scale = self.font.render(f"{scaled_distance:.2f} KM", False, (255, 255, 255))
+                else: 
+                    map_scale = self.font.render(f"{self.scaled_distance:.2f} UA", False, (255, 255, 255))
+                app.screen.blit(map_scale, (440, self.height - 120 - map_scale.get_height()/2))
+                
+                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 115), (20, self.height - 125))
+                pygame.draw.line(app.screen, (255, 255, 255), (420, self.height - 115), (420, self.height - 125))
+                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 120), (420, self.height - 120))
+                
                 physics_update_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
                 app.screen.blit(physics_update_display, (20, self.height - 60 ))
                 # tiempos de refresco
