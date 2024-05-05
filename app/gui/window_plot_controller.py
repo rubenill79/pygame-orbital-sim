@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import gui.component_builder as gui
 
 import pygame_gui.elements.ui_button
 from pygame_gui.elements.ui_window import UIWindow
@@ -12,36 +13,39 @@ class PlotControllerWindow(UIWindow):
         
         
         self.entities_list = []
+        self.graphics_list = [("pygame-gui.Attraction_forces"),("pygame-gui.None")]
         for i, entity in enumerate(simulation.orbital_system.entities):
             self.entities_list.append(entity.name)
         self.entities_list.append("pygame-gui.None")
-        self.top_left_offsett = 10
+        self.top_left_offsett = 20
         self.space_between_same_ui_elements = self.rect.width / 12
         self.space_between_distinct_ui_elements = self.rect.width / 4
             
-        self.matplotlib_entities_choose_label = pygame_gui.elements.UILabel(pygame.Rect((20,self.top_left_offsett/2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Graphic_entity",
+        self.matplotlib_entities_choose_label = pygame_gui.elements.UILabel(pygame.Rect((0,0),(self.rect.width, 50)),
+                                                  "pygame-gui.Plot_entity",
                                                   self.ui_manager,
                                                   container=self)
         self.matplotlib_entities_choose_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
                                                   "pygame-gui.None",
-                                                  pygame.Rect((20,self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
+                                                  pygame.Rect((0,self.space_between_same_ui_elements + self.top_left_offsett + 1),(self.rect.width - 32, 50)),
                                                   self.ui_manager,
                                                   container=self)
-        self.matplotlib_type_choose_label = pygame_gui.elements.UILabel(pygame.Rect((20,self.space_between_distinct_ui_elements + self.top_left_offsett / 2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Graphic_type",
+        self.matplotlib_type_choose_label = pygame_gui.elements.UILabel(pygame.Rect((0,self.space_between_distinct_ui_elements + self.top_left_offsett / 2 + 3),(self.rect.width, 50)),
+                                                  "pygame-gui.Plot_type",
                                                   self.ui_manager,
                                                   container=self)
-        self.matplotlib_type_choose_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
+        self.matplotlib_type_choose_objects = gui.create_drop_down_with_container_and_with_id(self.graphics_list,
                                                   "pygame-gui.None",
-                                                  pygame.Rect((20,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
-                                                  self.ui_manager,
-                                                  container=self)
-        self.matplotlib_draw_graphic = pygame_gui.elements.UIButton(pygame.Rect((20,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett / 2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Draw_graphic",
+                                                  pygame.Rect((0,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett + 14),(self.rect.width - 32, 50)),
                                                   self.ui_manager,
                                                   container=self,
-                                                  tool_tip_text="pygame-gui.Draw_graphic_tooltip")
+                                                  object_id='#last_drop_down_menu')
+        self.matplotlib_draw_graphic =  gui.create_button_with_container_and_tooltip_text(
+                                        pygame.Rect((0,self.space_between_distinct_ui_elements*2 + self.top_left_offsett / 2 + 35),(self.rect.width - 32, 50)),
+                                        "pygame-gui.Draw_plot",
+                                        self.ui_manager,
+                                        container=self,
+                                        tool_tip_text="pygame-gui.Draw_plot_tooltip")
         
     # Overrride method to stop the window from closing
     def on_close_window_button_pressed(self):

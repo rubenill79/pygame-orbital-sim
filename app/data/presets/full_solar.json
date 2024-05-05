@@ -2,10 +2,14 @@
     "global": {
         "global_name": "pygame-gui.Full_solar",
         "global_description": "pygame-gui.Full_solar_desc",
+        "start_sim_rate": 1,
         "min_sim_rate": 1,
-        "max_sim_rate": 10
+        "max_sim_rate": 1,
+        "start_scale": 1,
+        "min_scale": 0.01,
+        "max_scale": 1
     },
-    "entity_data": {
+    "online_entity_data": {
         "sun": {
             "m": 1.99e30,
             "d": 9.29e-3,

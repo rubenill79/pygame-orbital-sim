@@ -2,7 +2,7 @@
     "button": {
         "font": {
             "name": "m5x7",
-            "size": "32",
+            "size": "24",
             "bold": "0",
             "italic": "0",
             "regular_resource": {
@@ -26,7 +26,7 @@
     "label": {
         "font": {
             "name": "m5x7",
-            "size": "32",
+            "size": "24",
             "bold": "0",
             "italic": "0",
             "regular_resource": {
@@ -47,6 +47,11 @@
     "selection_list": {
         "misc": {
             "list_item_height": "40"
+        }
+    },
+    "#last_drop_down_menu": {
+        "misc": {
+            "expand_direction": "up"
         }
     }
 }

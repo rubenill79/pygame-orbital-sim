@@ -57,6 +57,27 @@
     "High_speed": "High speed will cause simulation misscalculations",
     "Sim_error": "ERROR: CANNOT RESUME SIMULATION",
     "Physics_update": "Physics updates / second",
-    "Small_diameter": "Insignificant"
+    "Small_diameter": "Insignificant",
+    "Planet_data_tooltip": "Show / Hide entity data",
+    "None": "Not selected",
+    "Sim_controller_window": "Entities controller",
+    "Camera_center": "Center camera on :",
+    "Focus_1": "Select entity 1 :",
+    "Focus_2": "Select entity 2 :",
+    "Pause_resume_tooltip": "Pause / Resume simulation",
+    "Decrease_speed_tooltip": "Decrease simulation speed",
+    "Increase_speed_tooltip": "Increase simulation speed",
+    "Plot_controller_window": "Plot controller",
+    "Plot_window": "Plot window",
+    "Draw_plot": "Draw plot",
+    "Plot_type": "Plot type",
+    "Plot_entity": "Select entity to analyze",
+    "Draw_plot_tooltip": "Analyze the data and draw the correspondig plot",
+    "Menu_tooltip": "Show options menu",
+    "Help_tooltip": "Show guide",
+    "Mouse_hover": "Enable / Disable mouse propierties on entities",
+    "Entity_count": "Entities present in the simulation",
+    "Physics_time": "Physics time",
+    "Render_time": "Render time"
   }
 }

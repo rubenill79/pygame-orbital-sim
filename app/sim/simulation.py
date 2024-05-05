@@ -7,27 +7,36 @@ from astropy.time import Time
 from .environment import OrbitalSystem
 
 class Simulation():
-    def __init__(self, app, sim_rate, scale = 1,  entity_scale = 1):    
+    def __init__(self, app, config_values, entities_number):    
         # dimensions: (ancho, alto) de la ventana en píxeles
-        # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado -1: calculado automáticamente por self.set_scale())
+        # scale: relación de ampliación entre AU y los píxeles mostrados (valor predeterminado 1)
         # entity_scale: ampliación adicional de las entidades para fines de visibilidad
         # sim_rate: cuántos días pasan en la simulación por cada segundo en la vida real (el valor predeterminado es 1 día por segundo)
         # dx, dy: desplazamiento en px como resultado del movimiento de la cámara
         # offsetx, offsety: constantes al centro (0,0) en la ventana
         self.check_resolution(app)
-
-        self.default_scale = scale
-        self.scale = scale
-        self.entity_scale = entity_scale
+        
+        self.start_sim_rate = config_values[0]
+        self.sim_rate = self.start_sim_rate
+        self.min_sim_rate = config_values[1]
+        self.max_sim_rate = config_values[2]
+        
+        self.start_scale = config_values[3]
+        self.scale = self.start_scale
+        self.min_scale = config_values[4]
+        self.max_scale = config_values[5]
+        
+        self.default_scale = 1
+        self.entity_scale = 1
+        
         self.scaled_distance = self.calculate_ua(self.scale)
-        self.sim_rate = sim_rate
         self.sim_speed = datetime.datetime.today()
         
         self.start_date = datetime.datetime.today()
         self.date = datetime.datetime.today()
 
         # inicializar el objeto del sistema orbital
-        self.orbital_system = OrbitalSystem()
+        self.orbital_system = OrbitalSystem(entities_number)
 
         self.physics_delta_t = 0
         self.start_time_update = 0
@@ -57,15 +66,22 @@ class Simulation():
         self.dy += dy / relative_scale
     def zoom(self, zoom):
         # ajustar el nivel de zoom y el desplazamiento del zoom
-        self.scale *= zoom
-        self.scaled_distance = self.calculate_ua(self.scale)
+        if self.scale >= self.min_scale and self.scale <= self.max_scale:
+            self.scale *= zoom
+            if self.scale < self.min_scale: self.scale = self.min_scale
+            if self.scale > self.max_scale: self.scale = self.max_scale
+            self.scaled_distance = self.calculate_ua(self.scale)
     def reset_zoom(self):
         # reset de todas las variables de la cámara a por defecto
         self.scale = self.default_scale
         self.dx = 0
         self.dy = 0
     def change_sim_rate(self, speed_ratio):
-        self.sim_rate *= speed_ratio
+        if self.sim_rate >= self.min_sim_rate and self.sim_rate <= self.max_sim_rate:
+            self.sim_rate *= speed_ratio
+            if self.sim_rate < self.min_sim_rate: self.sim_rate = self.min_sim_rate
+            if self.sim_rate > self.max_sim_rate: self.sim_rate = self.max_sim_rate
+        
     def check_resolution(self, app):
         self.width = app.current_resolution[0]
         if not app.fullscreen and app.current_resolution == app.resolution_fullscreen:
@@ -78,7 +94,23 @@ class Simulation():
     """
     Añadir las entidades a la simulación
     """
-    def add_horizons_entity(self, colour, entity_id, observer_id, mass, diameter = 6.69e-9):
+    def add_custom_entity(self, position, mass, speed, angle , e, a, p, arg_periapsis, name, index, diameter = 6.69e-9, colour = (255, 255, 255)):
+
+        self.orbital_system.add_entity(
+            colour,
+            position = position, 
+            speed = speed, 
+            angle = angle, 
+            mass = mass, 
+            diameter = diameter,
+            e = e,
+            a = a,
+            p = p,
+            arg_periapsis = arg_periapsis,
+            name = name,
+            index = index
+        ) 
+    def add_horizons_entity(self, colour, entity_id, observer_id, mass, index, diameter = 6.69e-9):
         # entity_id, observer_id: las ids numéricas asignadas por JPL SSD Horizons
         x, y, speed, angle, e, a, p, arg_periapsis, name = self.get_horizons_positioning(entity_id, observer_id)
 
@@ -94,6 +126,7 @@ class Simulation():
             p = p,
             arg_periapsis = arg_periapsis,
             name = name,
+            index = index
         ) 
     def get_horizons_positioning(self, entity_id, observer_id):
         obj = Horizons(
@@ -132,7 +165,7 @@ class Simulation():
     Funciones de la simulación
     """
     def update(self, app, delta_t):
-        if app.show_advanced_data:self.start_time_update = pygame.time.get_ticks() # Debug   
+        if app.show_advanced_data: self.start_time_update = pygame.time.get_ticks() # Debug   
         self.orbital_system.update(delta_t)
         self.update_date(delta_t)
         if app.show_advanced_data: self.current_time_update = pygame.time.get_ticks() # Debug   
@@ -407,7 +440,8 @@ class Simulation():
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} {sim_minutes:.5f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
+                    if sim_minutes >= 10: sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} {sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
+                    else: sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} 0{sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))
                     app.screen.blit(sim_rate_display, (20, 40))
                     sim_rate_hint_display = self.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
@@ -428,22 +462,24 @@ class Simulation():
                     map_scale = self.font.render(f"{scaled_distance:.2f} KM", False, (255, 255, 255))
                 else: 
                     map_scale = self.font.render(f"{self.scaled_distance:.2f} UA", False, (255, 255, 255))
-                app.screen.blit(map_scale, (440, self.height - 120 - map_scale.get_height()/2))
+                app.screen.blit(map_scale, (440, self.height - 140 - map_scale.get_height()/2))
                 
-                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 115), (20, self.height - 125))
-                pygame.draw.line(app.screen, (255, 255, 255), (420, self.height - 115), (420, self.height - 125))
-                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 120), (420, self.height - 120))
+                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 135), (20, self.height - 145))
+                pygame.draw.line(app.screen, (255, 255, 255), (420, self.height - 135), (420, self.height - 145))
+                pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 140), (420, self.height - 140))
                 
                 physics_update_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
                 app.screen.blit(physics_update_display, (20, self.height - 60 ))
+                entities_number_display = self.font.render(F"{app.entity_count_text}: {self.orbital_system.entities_number}", 1, (255,255,255))
+                app.screen.blit(entities_number_display, (20, self.height - 80 ))
                 # tiempos de refresco
-                draw_display = self.font.render(F"Tiempo de renderizado: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
-                app.screen.blit(draw_display, (20, self.height - 80))
+                draw_display = self.font.render(F"{app.render_time_text}: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
+                app.screen.blit(draw_display, (20, self.height - 100))
                 if not app.simulation.paused:
-                    update_display = self.font.render(F"Tiempo de físicas: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
-                    app.screen.blit(update_display, (20, self.height - 100 ))
+                    update_display = self.font.render(F"{app.physics_time_text}: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
+                    app.screen.blit(update_display, (20, self.height - 120 ))
             # fps
             if app.show_FPS:
                 fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
                 app.screen.blit(fps_display, (20, self.height - 40 ))
-            
+            #print(self.scale, self.sim_rate)

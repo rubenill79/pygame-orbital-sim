@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import gui.component_builder as gui
 
 from pygame_gui.elements.ui_window import UIWindow
 
@@ -8,18 +9,7 @@ class SimControllerWindow(UIWindow):
         super().__init__(pygame.Rect(position, size), ui_manager,
                          window_display_title=title,
                          object_id='#sim_controller_window')
-        
 
-        
-        #game_surface_size = self.get_container().get_size()
-        """
-        self.game_surface_element = UIImage(pygame.Rect((0, 0),
-                                                        game_surface_size),
-                                            pygame.Surface(game_surface_size).convert(),
-                                            manager=ui_manager,
-                                            container=self,
-                                            parent_element=self)
-        """
         self.entities_list = []
         for i, entity in enumerate(simulation.orbital_system.entities):
             self.entities_list.append(entity.name)
@@ -28,33 +18,52 @@ class SimControllerWindow(UIWindow):
         self.space_between_same_ui_elements = self.rect.width / 12
         self.space_between_distinct_ui_elements = self.rect.width / 4
             
-        self.entities_camera_center_label = pygame_gui.elements.UILabel(pygame.Rect((20,self.top_left_offsett/2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Camera_center",
-                                                  self.ui_manager,
-                                                  container=self)
+        self.entities_camera_center_label = gui.create_label_with_container(pygame.Rect((0,0),(self.rect.width, 50)),
+                                            "pygame-gui.Camera_center",
+                                            self.ui_manager,
+                                            self)
         self.entities_camera_center_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
-                                                  "pygame-gui.None",
-                                                  pygame.Rect((20,self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
-                                                  self.ui_manager,
-                                                  container=self)
-        self.entities_focus_1_label = pygame_gui.elements.UILabel(pygame.Rect((20,self.space_between_distinct_ui_elements + self.top_left_offsett / 2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Focus_1",
-                                                  self.ui_manager,
-                                                  container=self)
+                                              "pygame-gui.None",
+                                              pygame.Rect((0,self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 77, 50)),
+                                              self.ui_manager,
+                                              container=self)
+        self.entities_camera_center_button = gui.create_button_with_container_and_tooltip_text(
+                                             pygame.Rect((self.rect.width - 82 ,self.space_between_same_ui_elements + self.top_left_offsett),(50, 50)),
+                                             ">", 
+                                             self.ui_manager,
+                                             container=self,
+                                             tool_tip_text="pygame-gui.Planet_data_tooltip")
+        self.entities_focus_1_label = gui.create_label_with_container(pygame.Rect((0,self.space_between_distinct_ui_elements + self.top_left_offsett / 2),(self.rect.width, 50)),
+                                      "pygame-gui.Focus_1",
+                                      self.ui_manager,
+                                      self)
         self.entities_focus_1_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
-                                                  "pygame-gui.None",
-                                                  pygame.Rect((20,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
-                                                  self.ui_manager,
-                                                  container=self)
-        self.entities_focus_2_label = pygame_gui.elements.UILabel(pygame.Rect((20,self.space_between_distinct_ui_elements*2 + self.top_left_offsett / 2),(self.rect.width - 70, 50)),
-                                                  "pygame-gui.Focus_2",
-                                                  self.ui_manager,
-                                                  container=self)
-        self.entities_focus_2_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
-                                                  "pygame-gui.None",
-                                                  pygame.Rect((20,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
-                                                  self.ui_manager,
-                                                  container=self)
+                                        "pygame-gui.None",
+                                        pygame.Rect((0,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett + 10),(self.rect.width - 77, 50)),
+                                        self.ui_manager,
+                                        container=self)
+        self.entities_focus_1_button = gui.create_button_with_container_and_tooltip_text(
+                                       pygame.Rect((self.rect.width - 82 ,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett + 10),(50, 50)),
+                                       ">", 
+                                       self.ui_manager,
+                                       container=self,
+                                       tool_tip_text="pygame-gui.Planet_data_tooltip")
+        self.entities_focus_2_label = gui.create_label_with_container(pygame.Rect((0,self.space_between_distinct_ui_elements*2 + self.top_left_offsett / 2 + 10),(self.rect.width, 50)),
+                                      "pygame-gui.Focus_2",
+                                      self.ui_manager,
+                                      self)
+        self.entities_focus_2_objects = gui.create_drop_down_with_container_and_with_id(self.entities_list,
+                                        "pygame-gui.None",
+                                        pygame.Rect((0,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett + 20),(self.rect.width - 77, 50)),
+                                        self.ui_manager,
+                                        container=self,
+                                        object_id='#last_drop_down_menu')
+        self.entities_focus_2_button = gui.create_button_with_container_and_tooltip_text(
+                                       pygame.Rect((self.rect.width - 82 ,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett + 20),(50, 50)),
+                                       ">", 
+                                       self.ui_manager,
+                                       container=self,
+                                       tool_tip_text="pygame-gui.Planet_data_tooltip")
 
         #self.pong_game = PongGame(game_surface_size)
 
@@ -90,7 +99,7 @@ class SimControllerWindow(UIWindow):
         self.entities_camera_center_objects.kill()
         self.entities_camera_center_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
                                                   option,
-                                                  pygame.Rect((20,self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
+                                                  pygame.Rect((0,self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 77, 50)),
                                                   self.ui_manager,
                                                   container=self)
     
@@ -98,14 +107,15 @@ class SimControllerWindow(UIWindow):
         self.entities_focus_1_objects.kill()
         self.entities_focus_1_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
                                                   option,
-                                                  pygame.Rect((20,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
+                                                  pygame.Rect((0,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett + 10),(self.rect.width - 77, 50)),
                                                   self.ui_manager,
                                                   container=self)
         
     def update_externaly_changed_entities_focus_2_objects(self, option):
         self.entities_focus_2_objects.kill()
-        self.entities_focus_2_objects = pygame_gui.elements.UIDropDownMenu(self.entities_list,
-                                                  option,
-                                                  pygame.Rect((20,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett),(self.rect.width - 70, 50)),
-                                                  self.ui_manager,
-                                                  container=self)
+        self.entities_focus_2_objects = gui.create_drop_down_with_container_and_with_id(self.entities_list,
+                                        option,
+                                        pygame.Rect((0,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett + 20),(self.rect.width - 77, 50)),
+                                        self.ui_manager,
+                                        container=self,
+                                        object_id='#last_drop_down_menu')

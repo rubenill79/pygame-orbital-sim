@@ -26,7 +26,7 @@ Clase Entidad (Planetas o satélites)
 """
 class Entity():
        
-    def __init__(self, colour, position, diameter, mass, central_mass, e = 0, a = 1, p = 0, arg_periapsis = 0, name = ''):
+    def __init__(self, colour, position, diameter, mass, central_mass, e = 0, a = 1, p = 0, arg_periapsis = 0, name = '', entities_number = 0):
         # posición: tuple (x, y) que describe la distancia en UA desde el centro del sistema (0, 0)
         # diámetro: medido en UA
         # masa: medida en kg
@@ -39,6 +39,7 @@ class Entity():
         self.x, self.y = float(self.x), float(self.y)
         self.diameter = diameter
         self.mass = mass
+        self.central_mass = central_mass
         self.density = self.mass / (4/3 * math.pi * (self.diameter/2)**3)
         self.e = e
         self.a = a
@@ -57,6 +58,7 @@ class Entity():
         self.arg_periapsis = math.radians(arg_periapsis)
         self.colour = colour
         self.name = name
+        self.entities_number = entities_number
 
         self.speed = 0
         self.angle = 0
@@ -76,6 +78,7 @@ class Entity():
             self.orbital_period_years = 0
         """
         #self.orbital_points = []
+        self.attraction_forces = []
         
         # sim_rate: establecido externamente, describe el número de días que pasan en la simulación por cada segundo de la vida real (en tiempo real es 1.2e-5)
         # delta_t: el tiempo en ms entre fotogramas utilizado para mantener constante la tasa de simulación
@@ -97,11 +100,14 @@ class Entity():
         self.y -= y # resta debido al sistema de coordenadas de pygame porque 0,0 corresponde a la esquina superior en vez de la inferior
         #self.orbital_points.append((self.x, self.y))
         if math.hypot(self.x, self.y) > self.a: self.a = math.hypot(self.x, self.y)
-    def accelerate(self, acceleration):
+    def accelerate(self, name, acceleration):
         # Ajusta la magnitud de la aceleración para los días pasados por fotograma
         # Aplica una aceleración a la entidad en función de su velocidad actual y la nueva aceleración.
         # Utiliza funciones trigonométricas para combinar las aceleraciones en coordenadas polares.
         acc_mag, acc_angle = acceleration
+        if(name != ""):
+            self.attraction_forces.append((name, acc_mag, acc_angle))
+            self.attraction_forces = self.attraction_forces[-self.entities_number:]
         acc_mag *= self.days_per_update()
         self.speed, self.angle = add_vectors((self.speed, self.angle), (acc_mag, acc_angle))
     def attract(self, other):
@@ -116,5 +122,5 @@ class Entity():
         force = (self.GForce * self.mass * other.mass) / (distance ** 2)
      
         # Acelerar ambos cuerpos uno hacia el otro mediante el vector de aceleración a = F/m, reordenado a partir de la segunda ley de Newton
-        self.accelerate((force / self.mass, theta - (math.pi / 2)))
-        other.accelerate((force / other.mass, theta + (math.pi / 2)))
+        self.accelerate(other.name, (force / self.mass, theta - (math.pi / 2)))
+        other.accelerate(self.name, (force / other.mass, theta + (math.pi / 2)))

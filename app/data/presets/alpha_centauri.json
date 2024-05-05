@@ -1,0 +1,50 @@
+{
+    "global": {
+        "global_name": "pygame-gui.Alpha_centauri",
+        "global_description": "pygame-gui.Alpha_centauri_desc",
+        "start_sim_rate": 1,
+        "min_sim_rate": 1,
+        "max_sim_rate": 100,
+        "start_scale": 1,
+        "min_scale": 0,
+        "max_scale": 100
+    },
+    "offline_entity_data": {
+        "Alpha centauri A": {
+            "pos": [0, 0],
+            "m": 2.167e30,
+            "s": 0,
+            "rad": 0,
+            "e": 0,
+            "a": 0,
+            "p": 0,
+            "per": 0,
+            "d": 0.0082,
+            "c": [255, 255, 0]
+        },
+        "Alpha centauri B": {
+            "pos": [23.6, 0],
+            "m": 1.789e30,
+            "s": 1.5e-7,
+            "rad": 1.5708,
+            "e": 0.52,
+            "a": 23.6,
+            "p": 29218,
+            "per": 4.03,
+            "d": 0.0058,
+            "c": [0, 0, 255]
+        },
+        "Proxima centauri": {
+            "pos": [15000, 0],
+            "m": 2.446e29,
+            "s": 1.0e-9,
+            "rad": 1.5708,
+            "e": 0.60,
+            "a": 15000,
+            "p": 201025000,
+            "per": 1.57,
+            "d": 0.0013,
+            "c": [255, 0, 0]
+        }
+    }
+}

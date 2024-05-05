@@ -11,7 +11,7 @@ class PlotWindow(UIPlotWindow):
                          figuresurface=fig,
                          window_display_title=title,
                          object_id='#plot_controller_window')
-        
+    
     # Overrride method to stop the window from closing
     def on_close_window_button_pressed(self):
         pass
