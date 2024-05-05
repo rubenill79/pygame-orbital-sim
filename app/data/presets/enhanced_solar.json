@@ -3,11 +3,11 @@
         "global_name": "pygame-gui.Enhanced_solar",
         "global_description": "pygame-gui.Enhanced_solar_desc",
         "start_sim_rate": 1,
-        "min_sim_rate": 1,
-        "max_sim_rate": 1,
-        "start_scale": 1,
-        "min_scale": 0.01,
-        "max_scale": 1
+        "min_sim_rate": 0,
+        "max_sim_rate": 100,
+        "start_scale": 4,
+        "min_scale": 0,
+        "max_scale": 40
     },
     "online_entity_data": {
         "sun": {
