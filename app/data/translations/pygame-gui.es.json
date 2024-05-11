@@ -15,7 +15,7 @@
     "Back_simulation": "Volver a la Simulación",
     "Exit_simulation": "Salir de la Simulación",
     "Language": "Idioma",
-    "Gui_scale": "Escala de la interfaz",
+    "Show_lenght_scale": "Mostrar escala de medición",
     "Planet_size": "Tamaño de los planetas",
     "Advanced_data": "Mostrar datos avanzados",
     "FPS": "Mostrar FPS",
@@ -44,8 +44,9 @@
     "Mass": "Masa",
     "Density": "Densidad",
     "Position": "Posición",
-    "Eccentricity": "Excentricidad de la órbita",
-    "Major_axis": "Semieje mayor",
+    "Eccentricity": "Excentricidad de la órbita (e)",
+    "Major_axis": "Semieje mayor (a)",
+    "Minor_axis": "Semieje menor (b)",
     "Velocity": "Velocidad",
     "Per_day": "por día",
     "Angle": "Ángulo de rotación",
@@ -79,6 +80,15 @@
     "Entity_count": "Entidades presentes en la simulación",
     "Physics_time": "Tiempo de físicas",
     "Render_time": "Tiempo de renderizado",
-    "Credits_html": "<font face=m5x7 color=regular_text><font color=#E784A2 pixel_size=48><b><effect id=spin_me>Créditos</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Diseño y Desarrollo:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Arte Gráfico:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Música:</effect></b></font><font color=regular_text pixel_size=24>&emsp;\"Arcadia\" Kevin MacLeod, <b><a href='https://incompetech.com/'><effect id=spin_me>incompetech</effect></a></b>, Licenciada bajo Creative Commons: Atribución 3.0, <b><a href='http://creativecommons.org/licenses/by/3.0/'><effect id=spin_me>Ver licencia</effect></a></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Dependencias:</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Agradecimientos especiales:</effect></b></font></font>"
+    "Credits_html": "<font face=m5x7 color=regular_text><font color=#E784A2 pixel_size=48><b><effect id=spin_me>Créditos</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Diseño y Desarrollo:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Arte Gráfico:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Música:</effect></b></font><font color=regular_text pixel_size=24>&emsp;\"Arcadia\" Kevin MacLeod, <b><a href='https://incompetech.com/'><effect id=spin_me>incompetech</effect></a></b>, Licenciada bajo Creative Commons: Atribución 3.0, <b><a href='http://creativecommons.org/licenses/by/3.0/'><effect id=spin_me>Ver licencia</effect></a></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Dependencias:</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Agradecimientos especiales:</effect></b></font></font>",
+    "Not_available": "No disponible",
+    "M_distance": "Mostrar distancias en:",
+    "M_angle": "Mostrar angulos en:",
+    "M_mass": "Mostrar masas en:",
+    "M_density": "Mostrar densidades en:",
+    "Attraction_forces": "Fuerzas de atracción",
+    "Arg_periapsis": "Argumento del periastro (ω)",
+    "Orbital_period": "Periodo orbital",
+    "Earth_years": "Años terrestres"
   }
 }

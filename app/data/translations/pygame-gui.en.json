@@ -15,7 +15,7 @@
     "Back_simulation": "Back to Simulation",
     "Exit_simulation": "Exit Simulation",
     "Language": "Language",
-    "Gui_scale": "Gui Scale",
+    "Show_lenght_scale": "Show measurement scale",
     "Planet_size": "Planet Size",
     "Advanced_data": "Show Advanced data",
     "FPS": "Show FPS",
@@ -44,8 +44,9 @@
     "Mass": "Mass",
     "Density": "Density",
     "Position": "Position",
-    "Eccentricity": "Orbital eccentricity",
-    "Major_axis": "Semi-major axis",
+    "Eccentricity": "Orbital eccentricity (e)",
+    "Major_axis": "Semi-major axis (a)",
+    "Minor_axis": "Semi-minor axis (b)",
     "Velocity": "Velocity",
     "Per_day": "per day",
     "Angle": "Rotation angle",
@@ -78,6 +79,16 @@
     "Mouse_hover": "Enable / Disable mouse propierties on entities",
     "Entity_count": "Entities present in the simulation",
     "Physics_time": "Physics time",
-    "Render_time": "Render time"
+    "Render_time": "Render time",
+    "Credits_html": "<font face=m5x7 color=regular_text><font color=#E784A2 pixel_size=48><b><effect id=spin_me>Créditos</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Diseño y Desarrollo:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Arte Gráfico:</effect></b></font><font color=regular_text pixel_size=24>&emsp;<b><a href='https://github.com/rubenill79'><effect id=spin_me>Rubén Lázaro Castillo</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Música:</effect></b></font><font color=regular_text pixel_size=24>&emsp;\"Arcadia\" Kevin MacLeod, <b><a href='https://incompetech.com/'><effect id=spin_me>incompetech</effect></a></b>, Licenciada bajo Creative Commons: Atribución 3.0, <b><a href='http://creativecommons.org/licenses/by/3.0/'><effect id=spin_me>Ver licencia</effect></a></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Dependencias:</effect></b><br></font><font color=#879AF6 pixel_size=36><b><effect id=spin_me>Agradecimientos especiales:</effect></b></font></font>",
+    "Not_available": "Not available yet",
+    "M_distance": "Show distance in:",
+    "M_angle": "Show angles in:",
+    "M_mass": "Show mass in:",
+    "M_density": "Show density in:",
+    "Attraction_forces": "Attraction forces",
+    "Arg_periapsis": "Periastral argument (ω)",
+    "Orbital_period": "Orbital period",
+    "Earth_years": "Earth years"
   }
 }

@@ -39,8 +39,10 @@ class Entity():
         self.x, self.y = float(self.x), float(self.y)
         self.diameter = diameter
         self.mass = mass
+        self.print_mass = '{:.5e}'.format(self.mass)
         self.central_mass = central_mass
-        self.density = self.mass / (4/3 * math.pi * (self.diameter/2)**3)
+        self.density = round(self.mass / (4/3 * math.pi * (self.diameter/2)**3), 5)
+        self.print_density = '{:.5e}'.format(self.density)
         self.e = e
         self.a = a
         if math.hypot(self.x, self.y) > self.a: self.a = math.hypot(self.x, self.y)
@@ -84,6 +86,7 @@ class Entity():
         # delta_t: el tiempo en ms entre fotogramas utilizado para mantener constante la tasa de simulación
         self.sim_rate = 1
         self.delta_t = 16
+        
     """
     Cálculos físicos para el movimiento
     """

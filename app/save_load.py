@@ -1,9 +1,9 @@
 import pickle
 
 class GeneralSettings:
-    def __init__(self, language='es', gui_scale=100, show_FPS=True, advanced_data=False):
+    def __init__(self, language='es', show_lenght_scale=True, show_FPS=True, advanced_data=False):
         self.language = language
-        self.gui_scale = gui_scale
+        self.show_lenght_scale = show_lenght_scale
         self.show_FPS = show_FPS
         self.advanced_data = advanced_data
 
@@ -19,11 +19,11 @@ class GeneralSettings:
             with open('data/general_settings.dat', 'rb') as file:
                 try: 
                     general_settings = pickle.load(file)
-                    try: return general_settings.language, general_settings.gui_scale, general_settings.show_FPS, general_settings.advanced_data
+                    try: return general_settings.language, general_settings.show_lenght_scale, general_settings.show_FPS, general_settings.advanced_data
                     except AttributeError: pass
                 except pickle.UnpicklingError: pass
         except FileNotFoundError: pass
-        return 'es', 100, True, False
+        return 'es', True, True, False
 
 class SimSettings:
     def __init__(self, distance_mag='AU', angle_mag='Deg', mass_mag='Kg', density_mag='kg/UA', planet_size=1, enable_mouse_hover=True):

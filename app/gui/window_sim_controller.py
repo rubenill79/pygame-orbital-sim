@@ -29,7 +29,7 @@ class SimControllerWindow(UIWindow):
                                               container=self)
         self.entities_camera_center_button = gui.create_button_with_container_and_tooltip_text(
                                              pygame.Rect((self.rect.width - 82 ,self.space_between_same_ui_elements + self.top_left_offsett),(50, 50)),
-                                             ">", 
+                                             "✓", 
                                              self.ui_manager,
                                              container=self,
                                              tool_tip_text="pygame-gui.Planet_data_tooltip")
@@ -44,7 +44,7 @@ class SimControllerWindow(UIWindow):
                                         container=self)
         self.entities_focus_1_button = gui.create_button_with_container_and_tooltip_text(
                                        pygame.Rect((self.rect.width - 82 ,self.space_between_distinct_ui_elements + self.space_between_same_ui_elements + self.top_left_offsett + 10),(50, 50)),
-                                       ">", 
+                                       "✓", 
                                        self.ui_manager,
                                        container=self,
                                        tool_tip_text="pygame-gui.Planet_data_tooltip")
@@ -60,7 +60,7 @@ class SimControllerWindow(UIWindow):
                                         object_id='#last_drop_down_menu')
         self.entities_focus_2_button = gui.create_button_with_container_and_tooltip_text(
                                        pygame.Rect((self.rect.width - 82 ,self.space_between_distinct_ui_elements*2 + self.space_between_same_ui_elements + self.top_left_offsett + 20),(50, 50)),
-                                       ">", 
+                                       "✓", 
                                        self.ui_manager,
                                        container=self,
                                        tool_tip_text="pygame-gui.Planet_data_tooltip")

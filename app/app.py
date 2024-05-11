@@ -38,7 +38,7 @@ class App:
         self.background = img.load_img('menu_background')
         self.background = pygame.transform.scale(self.background, (self.current_resolution))
         # Opciones
-        self.language, self.gui_scale, self.show_FPS, self.show_advanced_data = GeneralSettings.load_general_settings()
+        self.language, self.show_lenght_scale, self.show_FPS, self.show_advanced_data = GeneralSettings.load_general_settings()
         self.distance_mag, self.angle_mag, self.mass_mag, self.density_mag, self.planet_size, self.enable_mouse_hover = SimSettings.load_sim_settings()
         self.music_volume, self.gui_volume = AudioSettings.load_audio_settings()
         self.languages_list = ['pygame-gui.Spanish','pygame-gui.English']
@@ -110,6 +110,7 @@ class App:
         self.main_menu_manager.set_locale(self.language)
         self.selection_menu_manager.set_locale(self.language)
         self.play_menu_manager.set_locale(self.language)
+        self.reset_localized_variables()
         self.credits_menu_manager.set_locale(self.language)
         self.options_menu_manager.set_locale(self.language)
         self.general_options_menu_manager.set_locale(self.language)
@@ -265,7 +266,7 @@ class App:
             elif i == 7: self.play_menu_element.append(PlotWindow((x_position, y_position), (self.screen.get_width() / 4 - 17, self.screen.get_height() / 2), self.play_menu_manager, element_text, self.simulation))
             elif i == 0 or i == 1 or i == 3 or i == 8 or i == 9 or i == 10: self.play_menu_element.append(gui.create_button_with_id_and_tooltip_text(x_position, y_position, 50, 50, element_text, tooltip, self.play_menu_manager, '#menu_button'))
             else: self.play_menu_element.append(gui.create_button_with_id_and_tooltip_text(x_position, y_position, 100, 50, element_text, tooltip, self.play_menu_manager, '#menu_button'))
-        print(len(self.play_menu_element))
+        self.play_menu_element[1].disable()
     def reset_localized_variables(self):
         self.play_text_elements = [
             ("Sim_paused"),
@@ -345,7 +346,7 @@ class App:
         self.general_options_menu_elements = [
             ("pygame-gui.Language", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 200),
-            ("pygame-gui.Gui_scale", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
+            ("pygame-gui.Show_lenght_scale", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 140),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 140),
             ("pygame-gui.FPS", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 80),
             ("", self.screen.get_width()/2 + 200, self.screen.get_height()/2 - 80),
@@ -361,9 +362,10 @@ class App:
                 elif self.language == 'es': language = 'pygame-gui.Spanish'
                 # Create the dropdown menu
                 self.general_options_menu_elements_list.append(gui.create_drop_down(self.languages_list, language, x_position, y_position, 250, 50, self.general_options_menu_manager))
+            elif i == 3: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_lenght_scale), self.general_options_menu_manager))
             elif i == 5: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_FPS), self.general_options_menu_manager))
             elif i == 7: self.general_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.show_advanced_data), self.general_options_menu_manager))
-            else: self.general_options_menu_elements_list.append(gui.create_label(x_position, y_position, 250, 50, element_text, self.general_options_menu_manager))
+            #else: self.general_options_menu_elements_list.append(gui.create_label(x_position, y_position, 250, 50, element_text, self.general_options_menu_manager))
     def create_simulation_options_menu_gui(self):
         self.simulation_options_menu_elements = [
             ("pygame-gui.M_distance", self.screen.get_width()/2 - 300, self.screen.get_height()/2 - 200),
@@ -384,7 +386,9 @@ class App:
         for i, (element_text, x_position, y_position) in enumerate(self.simulation_options_menu_elements):
             if i%2 == 0: self.simulation_options_menu_elements_list.append(gui.create_label(x_position, y_position, (self.screen.get_width()/2 + 200) - (self.screen.get_width()/2 - 300), 50, element_text, self.simulation_options_menu_manager))
             elif i == 11: self.simulation_options_menu_elements_list.append(gui.create_button(x_position, y_position, 250, 50, self.check_tf_button(self.enable_mouse_hover), self.simulation_options_menu_manager))
-            else: self.simulation_options_menu_elements_list.append(gui.create_label(x_position, y_position, 250, 50, element_text, self.simulation_options_menu_manager))
+            else: 
+                self.simulation_options_menu_elements_list.append(gui.create_drop_down(['pygame-gui.Not_available'], 'pygame-gui.Not_available', x_position, y_position, 250, 50, self.simulation_options_menu_manager))
+                self.simulation_options_menu_elements_list[i].disable()
     def create_video_options_menu_gui(self):
         # Definición de los elementos (botones y etiquetas)
         self.video_options_menu_elements = [
@@ -482,6 +486,17 @@ class App:
                 self.simulation.paused = not self.simulation.paused
                 self.play_menu_element[3].set_text(self.check_play_pause_button(self.simulation.paused))
             if event.ui_element == self.play_menu_element[4]: self.simulation.change_sim_rate(1.2)
+            # Mostrar entidades
+            if event.ui_element == self.play_menu_element[5].entities_camera_center_button:
+                self.simulation.show_camera_center = not self.simulation.show_camera_center
+                self.play_menu_element[5].entities_camera_center_button.set_text(self.check_tf_button(self.simulation.show_camera_center))
+            elif event.ui_element == self.play_menu_element[5].entities_focus_1_button:
+                self.simulation.show_entities_focus_1 = not self.simulation.show_entities_focus_1
+                self.play_menu_element[5].entities_focus_1_button.set_text(self.check_tf_button(self.simulation.show_entities_focus_1))
+            elif event.ui_element == self.play_menu_element[5].entities_focus_2_button:
+                self.simulation.show_entities_focus_2 = not self.simulation.show_entities_focus_2
+                self.play_menu_element[5].entities_focus_2_button.set_text(self.check_tf_button(self.simulation.show_entities_focus_2))
+            # Dibujar gráfico
             if event.ui_element == self.play_menu_element[6].matplotlib_draw_graphic:
                 sfx.play_sound('Menu_Sound_Load_Savefile', self.sfx_database)
                 for graphic in self.graphics_list:
@@ -682,16 +697,21 @@ class App:
                     try: 
                         if event.ui_element == self.options_menu_element[5]: running = self.go_back_to_main_menu()
                     except IndexError: pass
+                    if event.ui_element == self.general_options_menu_elements_list[3]: 
+                        sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
+                        self.show_lenght_scale = not self.show_lenght_scale
+                        self.general_options_menu_elements_list[3].set_text(self.check_tf_button(self.show_lenght_scale))
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.show_lenght_scale, self.show_FPS, self.show_advanced_data))
                     if event.ui_element == self.general_options_menu_elements_list[5]: 
                         sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
                         self.show_FPS = not self.show_FPS
                         self.general_options_menu_elements_list[5].set_text(self.check_tf_button(self.show_FPS))
-                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.gui_scale, self.show_FPS, self.show_advanced_data))
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.show_lenght_scale, self.show_FPS, self.show_advanced_data))
                     elif event.ui_element == self.general_options_menu_elements_list[7]:
                         sfx.play_sound('Menu_Sound_Save_Savefile', self.sfx_database)
                         self.show_advanced_data = not self.show_advanced_data
                         self.general_options_menu_elements_list[7].set_text(self.check_tf_button(self.show_advanced_data))
-                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.gui_scale, self.show_FPS, self.show_advanced_data))
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.show_lenght_scale, self.show_FPS, self.show_advanced_data))
                     elif event.ui_element == self.video_options_menu_elements_list[3]:
                         self.change_fullscreen()
                         self.video_options_menu_elements_list[3].set_text(self.check_tf_button(self.fullscreen))
@@ -706,7 +726,7 @@ class App:
                     if event.ui_element == self.general_options_menu_elements_list[1]:
                         if event.text == 'pygame-gui.English': self.set_locale('en')
                         elif event.text == 'pygame-gui.Spanish': self.set_locale('es')
-                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.gui_scale, self.show_FPS, self.show_advanced_data))
+                        GeneralSettings.save_general_settings(GeneralSettings(self.language, self.show_lenght_scale, self.show_FPS, self.show_advanced_data))
                     if event.ui_element == self.video_options_menu_elements_list[1]:
                         if event.text == 'pygame-gui.Native': self.current_resolution = self.resolution_fullscreen
                         elif event.text == '1600x800': self.current_resolution = self.resolution_windowed_1600_800
