@@ -1,4 +1,18 @@
+import os
 import pickle
+# Compile version
+# Get the path to the local app data folder
+local_app_data_folder = os.environ['LOCALAPPDATA']
+# Construct the full path to your data file
+data_file_path = os.path.join(local_app_data_folder, "Simulador Orbital", "general_settings.dat")
+sim_file_path = os.path.join(local_app_data_folder, "Simulador Orbital", "sim_settings.dat")
+video_file_path = os.path.join(local_app_data_folder, "Simulador Orbital", "video_settings.dat")
+audio_file_path = os.path.join(local_app_data_folder, "Simulador Orbital", "audio_settings.dat")
+# Local version
+'data/general_settings.dat'
+'data/sim_settings.dat'
+'data/video_settings.dat'
+'data/audio_settings.dat'
 
 class GeneralSettings:
     def __init__(self, language='es', show_lenght_scale=True, show_FPS=True, advanced_data=False):
@@ -9,14 +23,14 @@ class GeneralSettings:
 
     def save_general_settings(self):
         try:
-            with open('data/general_settings.dat', 'wb') as file:
+            with open(data_file_path, 'wb') as file:
                 pickle.dump(self, file)
         except PermissionError: return
 
     @classmethod
     def load_general_settings(cls):
         try:
-            with open('data/general_settings.dat', 'rb') as file:
+            with open(data_file_path, 'rb') as file:
                 try: 
                     general_settings = pickle.load(file)
                     try: return general_settings.language, general_settings.show_lenght_scale, general_settings.show_FPS, general_settings.advanced_data
@@ -35,13 +49,15 @@ class SimSettings:
         self.enable_mouse_hover = enable_mouse_hover
         
     def save_sim_settings(self):
-        with open('data/sim_settings.dat', 'wb') as file:
-            pickle.dump(self, file)
+        try:
+            with open(sim_file_path, 'wb') as file:
+                pickle.dump(self, file)
+        except PermissionError: return
         
     @classmethod
     def load_sim_settings(cls):
         try:
-            with open('data/sim_settings.dat', 'rb') as file:
+            with open(sim_file_path, 'rb') as file:
                 try: 
                     sim_settings = pickle.load(file)
                     try: return sim_settings.distance_mag, sim_settings.angle_mag, sim_settings.mass_mag, sim_settings.density_mag, sim_settings.planet_size, sim_settings.enable_mouse_hover
@@ -56,13 +72,15 @@ class VideoSettings:
         self.current_resolution = current_resolution
 
     def save_video_settings(self):
-        with open('data/video_settings.dat', 'wb') as file:
-            pickle.dump(self, file)
+        try:
+            with open(video_file_path, 'wb') as file:
+                pickle.dump(self, file)
+        except PermissionError: return
 
     @classmethod
     def load_video_settings(cls):
         try:
-            with open('data/video_settings.dat', 'rb') as file:
+            with open(video_file_path, 'rb') as file:
                 try:
                     video_settings = pickle.load(file)
                     return video_settings.fullscreen, video_settings.current_resolution
@@ -77,13 +95,15 @@ class AudioSettings:
         self.gui_volume = gui_volume
 
     def save_audio_settings(self):
-        with open('data/audio_settings.dat', 'wb') as file:
-            pickle.dump(self, file)
+        try:
+            with open(audio_file_path, 'wb') as file:
+                pickle.dump(self, file)
+        except PermissionError: return
 
     @classmethod
     def load_audio_settings(cls):
         try:
-            with open('data/audio_settings.dat', 'rb') as file:
+            with open(audio_file_path, 'rb') as file:
                 try:
                     audio_settings = pickle.load(file)
                     return audio_settings.music_volume, audio_settings.gui_volume
