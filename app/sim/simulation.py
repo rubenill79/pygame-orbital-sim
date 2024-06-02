@@ -190,63 +190,40 @@ class Simulation():
         # pasar sim_rate a cada entidad en la simulación;
         for entity in self.orbital_system.entities: entity.sim_rate = self.sim_rate
 
-        self.font = pygame.font.Font('data/fonts/m5x7.otf', 24)
+        #self.font = pygame.font.Font('data/fonts/m5x7.otf', 24)
         self.mouse_start_pos = (self.width/2,self.height/2)
     """
     Método Dibujar
     """
     def calculate_orbit_points(self, a, e, periapsis_radians, num_points=360):
-        
+        # Este cálculo ajusta la escala de visualización en función de la escala predeterminada.
         relative_scale = self.scale / self.default_scale    
-        
+        # Cálculo de los senos y cosenos del ángulo de periapsis:
         sin_periapsis = math.sin(periapsis_radians)
         cos_periapsis = math.cos(periapsis_radians)
         
         try:
             points = []
             for i in range(num_points):
-                
+                # Anomalía verdadera para cada punto
                 true_anomaly = math.radians(i)
-                x = a * (math.cos(true_anomaly) - e)
-                y = a * math.sqrt(1 - e**2) * math.sin(true_anomaly)
+                # Convertir la anomalía verdadera a la anomalía excéntrica
+                eccentric_anomaly = 2 * math.atan(math.sqrt((1 - e) / (1 + e)) * math.tan(true_anomaly / 2))
+                # Puntos x e y con las ecuaciones paramétricas
+                x = a * (math.cos(eccentric_anomaly) - e)
+                y = a * math.sqrt(1 - e**2) * math.sin(eccentric_anomaly)
                 
+                # Aplicar rotacion a las coordenadas
                 x_rotated = x * cos_periapsis - y * sin_periapsis
                 y_rotated = x * sin_periapsis + y * cos_periapsis
-                
-                # Apply rotation to the coordinates
-                if 0 <= periapsis_radians < math.pi / 4:  # First quadrant 0≤θ<0.785 radians. ok
-                    x_rotated = -x_rotated
-                    y_rotated = -y_rotated
-                elif math.pi / 4 <= periapsis_radians < math.pi / 2:  # Second quadrant 0.785≤θ<1.57 radians. ok
-                    x_rotated = -x_rotated
-                    y_rotated = -y_rotated
-                elif math.pi / 2 <= periapsis_radians < 3 * math.pi / 4:  # Third quadrant 1.57≤θ<2.355 radians. ok
-                    x_rotated = x_rotated
-                    y_rotated = y_rotated
-                elif 3 * math.pi / 4 <= periapsis_radians < math.pi:  # Fourth quadrant 2.355≤θ<3.14 radians. ok
-                    x_rotated = x_rotated
-                    y_rotated = -y_rotated
-                elif math.pi <= periapsis_radians < 5 * math.pi / 4:  # Fifth quadrant 3.14≤θ<3.93 radians. ok
-                    x_rotated = -x_rotated
-                    y_rotated = -y_rotated
-                elif 5 * math.pi / 4 <= periapsis_radians < 3 * math.pi / 2:  # Sixth quadrant 3.93≤θ<4.71 radians. ok
-                    x_rotated = -x_rotated
-                    y_rotated = y_rotated
-                elif 3 * math.pi / 2 <= periapsis_radians < 7 * math.pi / 4:  # Seventh quadrant 4.71≤θ<5.495 radians. ok
-                    x_rotated = -x_rotated
-                    y_rotated = -y_rotated
-                else:  # Eighth quadrant 5.495≤θ<6.28 radians. ok
-                    x_rotated = x_rotated
-                    y_rotated = y_rotated
                     
                 # Convert to screen coordinates
-                screen_x = relative_scale * ((self.scale * x_rotated) + self.dx) + self.offsetx
-                screen_y = relative_scale * ((self.scale * y_rotated) + self.dy) + self.offsety
+                screen_x = relative_scale * ((self.scale * -x_rotated) + self.dx) + self.offsetx
+                screen_y = relative_scale * ((self.scale * -y_rotated) + self.dy) + self.offsety
                 points.append((screen_x, screen_y))
                 
             return points
-        except ValueError:
-            return []
+        except ValueError: return []
     def calculate_ua(self, scale):
         if scale <= 20:
             # Proporcionalidad inversa para escalas menores a 20
@@ -268,6 +245,7 @@ class Simulation():
             # reset del hover
             self.hovered = False
             for i, entity in enumerate(self.orbital_system.entities):
+                if i == 0: self.center_tuple = (entity.x, entity.y)
                 entity.sim_rate = self.sim_rate
                 # calcular x, y teniendo en cuenta el zoom y la escala relativa debido a la cámara
                 relative_scale = self.scale / self.default_scale
@@ -322,11 +300,11 @@ class Simulation():
                         if((i == self.focus_camera_index and self.show_camera_center) or (i == self.focus_1_index and self.show_entities_focus_1) or (i == self.focus_2_index and self.show_entities_focus_2)):
                             if i == 0:
                                 if r < 2: r = 2
-                                name_label = self.font.render(F"{entity.name}", True, (255, 255, 255))
-                                position_label = self.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
-                                diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
-                                mass_label = self.font.render(F"{app.mass_text}: {entity.print_mass} kg", True, (180, 180, 180))
-                                density_label = self.font.render(F"{app.density_text}: {entity.print_density} kg/UA", True, (180, 180, 180))
+                                name_label = app.font.render(F"{entity.name}", True, (255, 255, 255))
+                                position_label = app.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
+                                diameter_label = app.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                                mass_label = app.font.render(F"{app.mass_text}: {entity.print_mass} kg", True, (180, 180, 180))
+                                density_label = app.font.render(F"{app.density_text}: {entity.print_density} kg/UA", True, (180, 180, 180))
                                 # append data to array
                                 entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                                 entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -335,18 +313,18 @@ class Simulation():
                                 entity_labels.append((density_label, (x + 3 + r, y + 3 + r + 90)))
                             else:
                                 # Distancia de sol a entidad con el teorema de pitágoras
-                                name_label = self.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (255, 255, 255))
-                                position_label = self.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
-                                if entity.diameter == 6.69e-9: diameter_label = self.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
-                                else: diameter_label = self.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
-                                mass_label = self.font.render(F"{app.mass_text}: {entity.print_mass} kg", True, (180, 180, 180))
-                                density_label = self.font.render(F"{app.density_text}: {entity.print_density} kg/UA", True, (180, 180, 180))
-                                e_label = self.font.render(F"{app.eccentricity_text}: {entity.e:.5f}", True, (180, 180, 180))
-                                a_label = self.font.render(F"{app.major_axis_text}: {entity.a:.5f} UA", True, (180, 180, 180))
-                                arg_periapsis_label = self.font.render(F"{app.arg_periapsis_text}: {entity.arg_periapsis:.5f} rad", True, (180, 180, 180))
-                                speed_label = self.font.render(F"{app.velocity_text}: {entity.speed:.5f} UA {app.per_day_text}", True, (180, 180, 180))
-                                angle_label = self.font.render(F"{app.angle_text}: {entity.angle:.5f} rad", True, (180, 180, 180))
-                                if entity.orbital_period_years != 0: orbit_label = self.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
+                                name_label = app.font.render(F"{entity.name} | {math.hypot(entity.x, entity.y):.5f} UA", True, (255, 255, 255))
+                                position_label = app.font.render(F"{app.position_text}: ({entity.x:.5f},{entity.y:.5f}) UA", True, (180, 180, 180))
+                                if entity.diameter == 6.69e-9: diameter_label = app.font.render(F"{app.diameter_text}: {app.small_diameter_text}", True, (180, 180, 180))
+                                else: diameter_label = app.font.render(F"{app.diameter_text}: {entity.diameter} UA", True, (180, 180, 180))
+                                mass_label = app.font.render(F"{app.mass_text}: {entity.print_mass} kg", True, (180, 180, 180))
+                                density_label = app.font.render(F"{app.density_text}: {entity.print_density} kg/UA", True, (180, 180, 180))
+                                e_label = app.font.render(F"{app.eccentricity_text}: {entity.e:.5f}", True, (180, 180, 180))
+                                a_label = app.font.render(F"{app.major_axis_text}: {entity.a:.5f} UA", True, (180, 180, 180))
+                                arg_periapsis_label = app.font.render(F"{app.arg_periapsis_text}: {entity.arg_periapsis:.5f} rad", True, (180, 180, 180))
+                                speed_label = app.font.render(F"{app.velocity_text}: {entity.speed:.5f} UA {app.per_day_text}", True, (180, 180, 180))
+                                angle_label = app.font.render(F"{app.angle_text}: {entity.angle:.5f} rad", True, (180, 180, 180))
+                                if entity.orbital_period_years != 0: orbit_label = app.font.render(F"{app.orbital_period_text}: {entity.orbital_period_years:.2f} {app.earth_years_text}", True, (180, 180, 180))
                                 # append data to array
                                 entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))
                                 entity_labels.append((position_label, (x + 3 + r, y + 3 + r + 30)))
@@ -360,7 +338,7 @@ class Simulation():
                                 entity_labels.append((angle_label, (x + 3 + r, y + 3 + r + 190)))
                                 if entity.orbital_period_years != 0: entity_labels.append((orbit_label, (x + 3 + r, y + 3 + r + 210)))
                         else: 
-                            name_label = self.font.render(F"{entity.name}", True, (255, 255, 255))
+                            name_label = app.font.render(F"{entity.name}", True, (255, 255, 255))
                             entity_labels.append((name_label, (x + 3 + r, y + 3 + r)))         
                         
             if not app.paused and not self.hovered and app.button_hovered is False: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -395,7 +373,7 @@ class Simulation():
                 
                 pygame.draw.line(app.screen, (180, 180, 180), (x1_screen, y1_screen), (x2_screen, y2_screen), 1)
                 
-                distance_text = self.font.render(f"{distance:.5f} UA", True, (255, 255, 255))
+                distance_text = app.font.render(f"{distance:.5f} UA", True, (255, 255, 255))
                 distance_text_rotated = pygame.transform.rotate(distance_text, angle)
                 app.screen.blit(distance_text_rotated, (((x1_screen + x2_screen) //2 - distance_text.get_width()/2), (y1_screen + y2_screen) //2 - distance_text.get_height()/2))
             
@@ -422,25 +400,25 @@ class Simulation():
                     app.screen.blit(text, position)       
             
             # fecha
-            date_display = self.font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
+            date_display = app.font.render(self.date.strftime("%d %b %Y %H:%M"), 1, (255,255,255))
             app.screen.blit(date_display, (20, 20))
             # velocidad de simulación
             if not self.paused:
                 try:
                     sim_hours = (self.sim_speed.seconds*50) // 3600
                     sim_minutes = ((self.sim_speed.seconds*50) /60) % 60
-                    if sim_minutes >= 10: sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} {sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
-                    else: sim_rate_display = self.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} 0{sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))
+                    if sim_minutes >= 10: sim_rate_display = app.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} {sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))                  
+                    else: sim_rate_display = app.font.render(F"{app.simulating_text}: {sim_hours:02} {app.hours_text} {app.and_text} 0{sim_minutes:.2f} {app.minutes_text} {app.per_second_text}" , 1, (255,255,255))
                     app.screen.blit(sim_rate_display, (20, 40))
-                    sim_rate_hint_display = self.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
+                    sim_rate_hint_display = app.font.render(F"{app.high_speed_text}" , 1, (255,255,255))                  
                     app.screen.blit(sim_rate_hint_display, (20, 60))
                     
                 except (AttributeError): pass      
             else:
-                paused_display = self.font.render(app.simulation_paused_text, 1, (0,102,204))
+                paused_display = app.font.render(app.simulation_paused_text, 1, (0,102,204))
                 app.screen.blit(paused_display, (self.width / 2 - paused_display.get_width()/2, 100))
             if self.ended:
-                error_display = self.font.render(F"{app.sim_error_text}", 1, (0,102,204))
+                error_display = app.font.render(F"{app.sim_error_text}", 1, (0,102,204))
                 app.screen.blit(error_display, (self.width / 2 - error_display.get_width()/2, 120))
             if app.show_advanced_data: current_time_draw = pygame.time.get_ticks() # Debug
             # ruler
@@ -448,9 +426,9 @@ class Simulation():
                 # Displaying map scales
                 if self.scaled_distance < 1: 
                     scaled_distance = self.scaled_distance*149597870.7
-                    map_scale = self.font.render(f"{scaled_distance:.2f} KM", False, (255, 255, 255))
+                    map_scale = app.font.render(f"{scaled_distance:.2f} KM", False, (255, 255, 255))
                 else: 
-                    map_scale = self.font.render(f"{self.scaled_distance:.2f} UA", False, (255, 255, 255))
+                    map_scale = app.font.render(f"{self.scaled_distance:.2f} UA", False, (255, 255, 255))
                 app.screen.blit(map_scale, (440, self.height - 140 - map_scale.get_height()/2))
                 
                 pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 135), (20, self.height - 145))
@@ -458,18 +436,18 @@ class Simulation():
                 pygame.draw.line(app.screen, (255, 255, 255), (20, self.height - 140), (420, self.height - 140))
             # ups
             if app.show_advanced_data and not app.paused:   
-                physics_update_display = self.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
+                physics_update_display = app.font.render(F"{app.physics_update_text}: {50}", 1, (255,255,255))
                 app.screen.blit(physics_update_display, (20, self.height - 60 ))
-                entities_number_display = self.font.render(F"{app.entity_count_text}: {self.orbital_system.entities_number}", 1, (255,255,255))
+                entities_number_display = app.font.render(F"{app.entity_count_text}: {self.orbital_system.entities_number}", 1, (255,255,255))
                 app.screen.blit(entities_number_display, (20, self.height - 80 ))
                 # tiempos de refresco
-                draw_display = self.font.render(F"{app.render_time_text}: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
+                draw_display = app.font.render(F"{app.render_time_text}: {current_time_draw-start_time_draw}ms", 1, (255,255,255))
                 app.screen.blit(draw_display, (20, self.height - 100))
                 if not app.simulation.paused:
-                    update_display = self.font.render(F"{app.physics_time_text}: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
+                    update_display = app.font.render(F"{app.physics_time_text}: {self.current_time_update-self.start_time_update}ms", 1, (255,255,255))
                     app.screen.blit(update_display, (20, self.height - 120 ))
             # fps
             if app.show_FPS:
-                fps_display = self.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
-                app.screen.blit(fps_display, (20, self.height - 40 ))
+                fps_display = app.font.render(F"FPS: {clock.get_fps():.2f}", 1, (255,255,255))
+                app.screen.blit(fps_display, (100, self.height - 40 ))
             #print(self.scale, self.sim_rate)

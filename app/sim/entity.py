@@ -57,7 +57,7 @@ class Entity():
             self.orbital_period_years = 0
             self.orbital_period_days = 0
             self.b = 0
-        self.arg_periapsis = math.radians(arg_periapsis)
+        self.arg_periapsis = a*(1 - e)
         self.colour = colour
         self.name = name
         self.entities_number = entities_number
@@ -86,6 +86,10 @@ class Entity():
         # delta_t: el tiempo en ms entre fotogramas utilizado para mantener constante la tasa de simulación
         self.sim_rate = 1
         self.delta_t = 16
+        #print(self.x, self.y)
+        #print(self.e)
+        #print(self.a)
+        #print(self.orbital_period_days)
         
     """
     Cálculos físicos para el movimiento

@@ -19,10 +19,9 @@ def load_presets(path):
     preset_file_names = []
     for preset in preset_files:
         reader = PresetReader(path + preset)
-        try:
-            reader.read_json()
-        except PermissionError:
-            continue
+        try: reader.read_json()
+        except PermissionError: continue
+        except json.decoder.JSONDecodeError: continue
         name = preset.split('.')[0]
         preset_file_names.append(name)
         presets_database[name] = reader.get_data()

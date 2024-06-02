@@ -34,7 +34,8 @@ class App:
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         # Configuración de la pantalla
         self.screen = self.set_screen()
-        # Fondo
+        # Fuente y fondo
+        self.font = pygame.font.Font('data/fonts/m5x7.otf', 24)
         self.background = img.load_img('menu_background')
         self.background = pygame.transform.scale(self.background, (self.current_resolution))
         # Opciones
@@ -561,6 +562,8 @@ class App:
             self.screen.fill((0,0,0))
             self.screen.blit(self.background,(0,0))
         else: self.simulation.draw(self, self.clock)
+        version_display = self.font.render("V 1.0.5", 1, (255,255,255))
+        self.screen.blit(version_display, (20, self.screen.get_height() - 40 ))
         for manager in managers:
             manager.draw_ui(self.screen)
         pygame.display.update()

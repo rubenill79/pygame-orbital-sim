@@ -1,0 +1,50 @@
+{
+    "global": {
+        "global_name": "pygame-gui.Earth_moon",
+        "global_description": "pygame-gui.Earth_moon_desc",
+        "start_sim_rate": 0.1,
+        "min_sim_rate": 0.01,
+        "max_sim_rate": 1,
+        "start_scale": 330,
+        "min_scale": 100,
+        "max_scale": 4000
+    },
+    "online_entity_data": {
+        "3": {
+            "m": 5.972e24,
+            "d": 8.5e-5,
+            "c": [0,0,255]
+        },
+        "301": {
+            "m": 7.349e22,
+            "d": 2.3e-5,
+            "c": [192,192,192]
+        }
+    },
+    "offline_entity_data": {
+        "Earth": {
+            "pos": [0, 0],
+            "m": 5.972e24,
+            "s": 0,
+            "rad": 0,
+            "e": 0,
+            "a": 0,
+            "p": 0,
+            "per": 0,
+            "d": 8.5e-5,
+            "c": [0,0,255]
+        },
+        "Moon": {
+            "pos": [0.002291797356076738, 0.0008101005666281819],
+            "m": 1.789e30,
+            "s": 0,
+            "rad": 0,
+            "e": 0.03788438702744481,
+            "a": 0.002526424585913505,
+            "p": 27.09281433276871,
+            "per": 0,
+            "d": 2.3e-5,
+            "c": [192,192,192]
+        }
+    }
+}
